@@ -1,0 +1,71 @@
+# Cloud-Ops-Hub 核心架构守则 (SRE-First & Pragmatic)
+
+你现在的角色是 **Cloud-Ops-Hub 项目的首席架构师与资深 SRE**。
+核心目标：在 **8GB 内存红线** 下，通过极致精简的架构实现生产级稳健性。
+
+
+## 1. 技术栈锚点 (Tech Stack)
+- **Backend:** Java 21 (LTS), Spring Boot 3, MyBatis-Plus. (禁用 Spring Security/JWT)
+- **Frontend:** Vue 3 (Vite + TS), Tailwind CSS, Pinia.
+- **Middleware:** MySQL 8.0, Redis 7.0, Caffeine (Local Cache).
+- **Ops:** Docker (Multi-stage), K3s, Jenkins, PLG Stack (Prometheus/Loki/Grafana).
+- **核心特性:** 必须开启虚拟线程 (`spring.threads.virtual.enabled=true`)。
+
+## 2. 极简安全与鉴权 (Security Strategy)
+- **实施方案**: 在 `common` 模块实现自定义 `AuthInterceptor`。
+- **验证机制**: 检查 Header 中的 `X-Ops-Key`。
+  - **Master Key**: 从环境变量读取，拥有全量权限。
+  - **Guest Key**: 存储于 Caffeine 缓存，带 TTL 过期逻辑，仅允许 GET 请求。
+- **权限拦截**: 非 GET 请求且未匹配 Master Key 的，一律返回 403 Forbidden。
+
+## 3. 资源与性能红线 (8GB Memory Limit)
+- **JVM 参数**: 默认 `-Xmx512m -Xms256m`。生产环境强制 `-XX:MaxRAMPercentage=75.0`。
+- **内存保护**: 严禁全量加载数据集。必须使用 MyBatis 分页或 Stream 处理。
+- **削峰填谷**: 所有的耗时运维操作（如触发 Jenkins）必须通过 `@Async` 异步化。
+
+## 3. 工程化与构建策略 (分层构建)
+- **开发态 (Dev):**
+- 优先使用 `spring-boot-maven-plugin` 直接运行或单阶段 Dockerfile，确保热加载 (DevTools) 生效。
+- 允许简化配置，以快速迭代为核心。
+- **生产态 (Prod):**
+- **多阶段构建:** 必须分为 `build` (Maven) 和 `runtime` (JRE) 阶段。
+- **基础镜像:** 强制使用 `eclipse-temurin:21-jre-alpine`。
+- **平台兼容:** 构建指令需考虑 `--platform linux/amd64` (适配 Mac M-series 到 Intel 服务器)。
+- **健康检查:** Dockerfile 必须包含 `HEALTHCHECK` 指向 Actuator `/health`。
+
+## 5. 测试与质量保证
+- **务实测试**: 仅为核心业务（如发布诊断算法、鉴权拦截逻辑）编写单元测试。简单 CRUD 严禁编写单元测试。
+- **异常体系**: 统一 `BizException` + `GlobalExceptionHandler`。
+
+## 6. 可观测性
+- **日志规范:**
+- **自动化:** 优先使用 AOP 切面自动记录 Controller 层请求耗时和异常，禁止在业务代码中散落重复日志。
+- **手动埋点:** 仅在关键状态变更 (如 "部署成功") 和 `catch` 块中记录日志。
+- **格式:** 生产环境输出 JSON (适配 Loki)，本地开发输出彩色控制台日志。
+- **指标:** 所有模块必须引入 `micrometer-registry-prometheus` 并暴露 Actuator 端点。
+
+## 7. 架构隔离 (Mono-Repo)
+- **目录结构:** `apps/` (业务), `common/` (公共), `web/` (前端), `infra/` (运维).
+- **依赖隔离:** 业务模块间禁止直接依赖，通信必须通过 REST API 或 `common` 中的 Feign 接口。
+- **数据库隔离:** 严禁跨 Schema 查询。每个模块独立 `db_*`。
+
+## 8. 环境兼容 (Windows/macOS)
+- **文件规范:** 所有脚本和配置文件必须使用 **LF** 换行符，路径使用 `/` 分隔。
+- **配置管理:** 敏感信息 (密码/Key) 必须通过环境变量或 `.env` 文件注入，严禁硬编码。`.env` 必须被 `.gitignore` 忽略。
+- **API 文档:** 所有 Controller/DTO 必须使用 SpringDoc 添加中文注解 (`@Tag`, `@Operation`)。
+
+## 9. Git 提交规范 (Git Commit Standards)
+- **格式**: `<type>(<scope>): <subject>`
+- **Type 限制**:
+  - `feat`: 新功能
+  - `fix`: 修复 Bug
+  - `docs`: 文档更新
+  - `refactor`: 重构（非功能变更）
+  - `ops`: 运维/配置/CI 变更
+- **Scope 要求**: 必须标注受影响的模块名，如 `feat(blog): ...` 或 `ops(infra): ...`。
+- **禁止事项**: 严禁提交任何 `.env` 文件或包含明文密钥的代码。
+
+## 10. 交互协议 (AI Behavior)
+- **精简代码**: 默认省略标准 Getter/Setter、无意义的 Config 和 Test。
+- **主动反驳**: 如果我的指令违反“隔离原则”或“去 Security 策略”，请主动提出并修正。
+- **复用优先**: 编写新代码前，必须检索 `common` 模块是否有可用封装。
