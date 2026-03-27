@@ -1,13 +1,12 @@
-package dev.deriou.opsgatewayportal;
+package dev.deriou.gateway;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class OpsGatewayPortalApplicationTests {
+class GatewayPortalApplicationTests {
 
     @Test
     void contextLoads() {
     }
-
 }
