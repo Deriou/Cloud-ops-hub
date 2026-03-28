@@ -20,7 +20,9 @@ import org.springframework.test.web.servlet.MockMvc;
 @Import({AuthConfig.class, WebMvcConfig.class})
 @TestPropertySource(properties = {
         "ops.auth.master-key=test-master-key",
-        "ops.auth.guest-token-ttl-seconds=300"
+        "ops.auth.guest-token-ttl-seconds=300",
+        "springdoc.api-docs.enabled=false",
+        "springdoc.swagger-ui.enabled=false"
 })
 class AccessModeControllerTest {
 

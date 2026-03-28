@@ -8,7 +8,7 @@ Base path: `/api/v1/blog`
   - 描述：分页查询文章
   - 权限：Guest/Master
 - `GET /posts/{id}`
-  - 描述：文章详情（优先命中渲染缓存）
+  - 描述：文章详情（优先命中渲染缓存，返回 `markdownContent` 与 `renderedHtml`）
   - 权限：Guest/Master
 - `POST /posts`
   - 描述：创建文章（Markdown）
@@ -32,7 +32,8 @@ Base path: `/api/v1/blog`
 ## 3. 搜索
 
 - `GET /search?q={keyword}`
-  - 描述：站内全文搜索（MySQL Fulltext）
+  - 描述：站内全文搜索（生产默认走 MySQL Fulltext，测试环境走 H2 降级实现）
+  - 参数：`q`、`pageNo`、`pageSize`
   - 权限：Guest/Master
 
 ## 4. 图片资源
@@ -48,3 +49,4 @@ Base path: `/api/v1/blog`
 
 - 渲染结果基于文章 `id + updateTime` 作为缓存键
 - 缓存未命中时执行渲染并回填 Caffeine
+- 渲染异常时降级返回安全 HTML，避免详情接口直接失败

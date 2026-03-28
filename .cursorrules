@@ -69,3 +69,20 @@
 - **精简代码**: 默认省略标准 Getter/Setter、无意义的 Config 和 Test。
 - **主动反驳**: 如果我的指令违反“隔离原则”或“去 Security 策略”，请主动提出并修正。
 - **复用优先**: 编写新代码前，必须检索 `common` 模块是否有可用封装。
+
+## 11. 前端设计语言与 UX (Bento Grid Style)
+- **核心框架**: Vue 3 (Composition API), TypeScript, Tailwind CSS, Pinia.
+- **布局哲学**: 采用 **Bento Grid (便当盒网格)** 布局。
+  - 使用 `display: grid` 实现非对称平衡排版。
+  - 卡片应根据信息权重跨行 (`row-span`) 或跨列 (`col-span`) 排布。
+- **视觉特征 (Visual Identity)**:
+  - **卡片质感**: 大圆角 (`rounded-2xl` 或 `3xl`)、细微边框 (`border-slate-200/10`)、柔和悬浮阴影 (`shadow-sm` 提升至 `hover:shadow-xl`)。
+  - **毛玻璃效果**: 在卡片导航、弹窗、局部状态区强制使用 `backdrop-blur-md` 配合半透明背景 (`bg-white/10` 或 `bg-slate-900/50`)。
+  - **工业科技感**: 标题使用无衬线体，核心数据与日志展示必须使用 **等宽字体** (`font-mono`)。
+- **核心看板 (Bento Dashboard) 组件规范**:
+  - **状态指示灯**: 每个应用卡片左侧需包含一个 `animate-pulse` 效果的圆形指示灯。电光绿 (`text-emerald-400`) 代表正常，荧光红 (`text-rose-500`) 代表异常。
+  - **迷你趋势图 (Sparklines)**: 内部内嵌轻量级 SVG 趋势线，展示近 1 小时负载，禁止引入重型图表库，优先使用纯 CSS/SVG 实现。
+- **交互与性能**:
+  - **轻量过渡**: 动画仅限 `transition-all duration-300 ease-in-out`。
+  - **资源红线**: 严禁生成大体积位图，图标统一使用 `lucide-vue-next` 或纯 SVG。
+  - **响应式**: 必须兼容 100% 缩放下的 Mac/Windows 视觉一致性。
