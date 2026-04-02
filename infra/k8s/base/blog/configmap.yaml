@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: blog-config
+  namespace: cloud-ops
+data:
+  # Matches apps/blog-service/src/main/resources/application.properties
+  BLOG_DATASOURCE_URL: "jdbc:mysql://mysql.cloud-ops.svc.cluster.local:3306/db_blog?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC"
+  BLOG_DATASOURCE_USERNAME: "root"
+  BLOG_SEARCH_MODE: "mysql"
+
+  BLOG_RENDER_CACHE_MAXIMUM_SIZE: "256"
+  BLOG_RENDER_CACHE_TTL: "PT30M"
+

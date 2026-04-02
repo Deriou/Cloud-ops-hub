@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cloud-ops-global-config
+  namespace: cloud-ops
+data:
+  # You can reference this for dashboards/logs if needed.
+  OPS_ENV: "dev"
+
