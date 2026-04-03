@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blog-service
+  namespace: cloud-ops
+  labels:
+    app: blog-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: blog-service
+  template:
+    metadata:
+      labels:
+        app: blog-service
+    spec:
+      imagePullSecrets:
+        - name: acr-secret
+      containers:
+        - name: blog-service
+          image: crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com/cloud-ops-hub/blog-service:0.0.1
+          ports:
+            - containerPort: 8080
+              name: http
+          envFrom:
+            - configMapRef:
+                name: blog-config
+          env:
+            - name: BLOG_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: cloud-ops-secret
+                  key: BLOG_DATASOURCE_PASSWORD
+            - name: OPS_AUTH_MASTER_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: cloud-ops-secret
+                  key: OPS_AUTH_MASTER_KEY
+          resources:
+            requests:
+              cpu: 100m
+              memory: 300Mi
+            limits:
+              cpu: 500m
+              memory: 768Mi
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 40
+            periodSeconds: 15
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            timeoutSeconds: 3

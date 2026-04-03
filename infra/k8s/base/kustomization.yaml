@@ -17,3 +17,15 @@ resources:
   - mysql/deployment.yaml
   - mysql/service.yaml
 
+  # Gateway
+  - gateway/deployment.yaml
+  - gateway/service.yaml
+
+  # Blog
+  - blog/deployment.yaml
+  - blog/service.yaml
+
+  # Web
+  - web/deployment.yaml
+  - web/service.yaml
+

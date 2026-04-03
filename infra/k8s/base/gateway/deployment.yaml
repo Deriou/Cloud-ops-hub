@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway-portal
+  namespace: cloud-ops
+  labels:
+    app: gateway-portal
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway-portal
+  template:
+    metadata:
+      labels:
+        app: gateway-portal
+    spec:
+      imagePullSecrets:
+        - name: acr-secret
+      containers:
+        - name: gateway-portal
+          image: crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com/cloud-ops-hub/gateway-portal:0.0.1
+          ports:
+            - containerPort: 8080
+              name: http
+          envFrom:
+            - configMapRef:
+                name: gateway-config
+          env:
+            - name: OPS_AUTH_MASTER_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: cloud-ops-secret
+                  key: OPS_AUTH_MASTER_KEY
+          resources:
+            requests:
+              cpu: 100m
+              memory: 200Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 40
+            periodSeconds: 15
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            timeoutSeconds: 3
