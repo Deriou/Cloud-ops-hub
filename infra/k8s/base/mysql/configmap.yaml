@@ -1,0 +1,66 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-init-sql
+  namespace: cloud-ops
+data:
+  01-schema.sql: |
+    CREATE DATABASE IF NOT EXISTS db_blog
+      DEFAULT CHARACTER SET utf8mb4
+      COLLATE utf8mb4_unicode_ci;
+
+    USE db_blog;
+
+    CREATE TABLE IF NOT EXISTS post (
+        id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+        title       VARCHAR(200) NOT NULL,
+        slug        VARCHAR(120) NOT NULL UNIQUE,
+        markdown_content LONGTEXT NOT NULL,
+        summary     VARCHAR(500),
+        create_time DATETIME    NOT NULL,
+        update_time DATETIME    NOT NULL
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+    CREATE INDEX idx_post_update_time ON post (update_time DESC, id DESC);
+
+    CREATE TABLE IF NOT EXISTS tag (
+        id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+        name        VARCHAR(120) NOT NULL UNIQUE,
+        slug        VARCHAR(120) NOT NULL UNIQUE,
+        create_time DATETIME    NOT NULL,
+        update_time DATETIME    NOT NULL
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+    CREATE TABLE IF NOT EXISTS category (
+        id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+        name        VARCHAR(120) NOT NULL UNIQUE,
+        slug        VARCHAR(120) NOT NULL UNIQUE,
+        create_time DATETIME    NOT NULL,
+        update_time DATETIME    NOT NULL
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+    CREATE TABLE IF NOT EXISTS post_tag (
+        post_id BIGINT NOT NULL,
+        tag_id  BIGINT NOT NULL,
+        PRIMARY KEY (post_id, tag_id),
+        CONSTRAINT fk_post_tag_post FOREIGN KEY (post_id) REFERENCES post (id),
+        CONSTRAINT fk_post_tag_tag  FOREIGN KEY (tag_id)  REFERENCES tag  (id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+    CREATE INDEX idx_post_tag_tag_id ON post_tag (tag_id);
+
+    CREATE TABLE IF NOT EXISTS post_category (
+        post_id     BIGINT NOT NULL,
+        category_id BIGINT NOT NULL,
+        PRIMARY KEY (post_id, category_id),
+        CONSTRAINT fk_post_category_post     FOREIGN KEY (post_id)     REFERENCES post     (id),
+        CONSTRAINT fk_post_category_category FOREIGN KEY (category_id) REFERENCES category (id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+    CREATE INDEX idx_post_category_category_id ON post_category (category_id);
+
+  02-search-schema.sql: |
+    USE db_blog;
+
+    CREATE FULLTEXT INDEX idx_post_fulltext_title_markdown
+        ON post (title, markdown_content);

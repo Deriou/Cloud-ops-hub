@@ -11,3 +11,9 @@ resources:
   - gateway/configmap.yaml
   - blog/configmap.yaml
 
+  # MySQL
+  - mysql/pv-pvc.yaml
+  - mysql/configmap.yaml
+  - mysql/deployment.yaml
+  - mysql/service.yaml
+
