@@ -11,7 +11,7 @@ COPY common/common-core/ common/common-core/
 COPY apps/gateway-portal/ apps/gateway-portal/
 RUN mvn package -pl apps/gateway-portal -am -DskipTests -B
 
-FROM eclipse-temurin:21-jre
+FROM eclipse-temurin:21-jre-jammy
 COPY --from=build /workspace/apps/gateway-portal/target/*.jar /app/app.jar
 EXPOSE 8080
 ENV JAVA_OPTS="-Xmx512m -Xms256m"
