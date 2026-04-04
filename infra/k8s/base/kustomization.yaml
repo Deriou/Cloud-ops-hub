@@ -29,3 +29,6 @@ resources:
   - web/deployment.yaml
   - web/service.yaml
 
+  # Ingress
+  - ingress.yaml
+
