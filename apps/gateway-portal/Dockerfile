@@ -1,4 +1,4 @@
-FROM maven:3.9.14-eclipse-temurin-21-alpine AS build
+FROM crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com/cloud-ops-hub/maven:3.9-eclipse-temurin-21-alpine AS build
 WORKDIR /workspace
 
 COPY pom.xml .
@@ -11,7 +11,7 @@ COPY common/common-core/ common/common-core/
 COPY apps/gateway-portal/ apps/gateway-portal/
 RUN mvn package -pl apps/gateway-portal -am -DskipTests -B
 
-FROM eclipse-temurin:21-jre-jammy
+FROM crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com/cloud-ops-hub/eclipse-temurin:21-jre-jammy
 COPY --from=build /workspace/apps/gateway-portal/target/*.jar /app/app.jar
 EXPOSE 8080
 ENV JAVA_OPTS="-Xmx512m -Xms256m"
