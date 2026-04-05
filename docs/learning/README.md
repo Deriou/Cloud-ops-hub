@@ -6,8 +6,9 @@
 
 1. `L0-local-vs-ecs-decision.md`
 2. `L1-k3s-deploy-handbook.md`
-3. `L2-observability-plg-handbook.md`
-4. `L3-jenkins-on-k3s-handbook.md`
+3. `L1.5-deploy-commands-reference.md`
+4. `L2-observability-plg-handbook.md`
+5. `L3-jenkins-on-k3s-handbook.md`
 
 学习原则：
 
