@@ -19,7 +19,7 @@ spec:
         - name: acr-secret
       containers:
         - name: web
-          image: crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com/cloud-ops-hub/web:0.0.1
+          image: crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com/cloud-ops-hub/web:0.0.2
           ports:
             - containerPort: 80
               name: http

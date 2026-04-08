@@ -35,7 +35,7 @@ onMounted(() => {
       <aside class="rounded-[28px] border border-border bg-slate-950/70 p-5 shadow-soft backdrop-blur-md">
         <div class="rounded-3xl border border-white/10 bg-white/5 p-5">
           <p class="text-xs uppercase tracking-[0.28em] text-cyan-200">Cloud Ops Hub</p>
-          <h1 class="mt-3 text-2xl font-semibold text-white">SRE-first portal</h1>
+          <h1 class="mt-3 text-2xl font-semibold text-white">个人编程笔记</h1>
           <p class="mt-3 text-sm leading-6 text-slate-300">
             先接通 Gateway 与 Blog，再为 D 阶段 Ops-Core 预留稳定的看板壳层。
           </p>
@@ -96,6 +96,17 @@ onMounted(() => {
 
         <RouterView />
       </main>
+
+      <footer class="col-span-full py-4 text-center text-xs text-slate-500">
+        <a
+          href="https://beian.miit.gov.cn/"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="transition-colors duration-300 hover:text-slate-300"
+        >
+          冀ICP备2026010164号
+        </a>
+      </footer>
     </div>
   </div>
 </template>
