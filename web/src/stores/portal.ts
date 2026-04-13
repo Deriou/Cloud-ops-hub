@@ -1,4 +1,5 @@
 import { fetchAccessMode, fetchAppRegistry, fetchHealthSummary } from "@/api/gateway";
+import { toUiError } from "@/lib/errors";
 import type { AppHealth, AppMeta } from "@/types/gateway";
 import { defineStore } from "pinia";
 
@@ -8,6 +9,7 @@ interface PortalState {
   healthList: AppHealth[];
   isLoading: boolean;
   errorMessage: string;
+  errorTraceId: string;
   hydrated: boolean;
 }
 
@@ -18,6 +20,7 @@ export const usePortalStore = defineStore("portal", {
     healthList: [],
     isLoading: false,
     errorMessage: "",
+    errorTraceId: "",
     hydrated: false
   }),
   getters: {
@@ -29,6 +32,7 @@ export const usePortalStore = defineStore("portal", {
     async hydrate() {
       this.isLoading = true;
       this.errorMessage = "";
+      this.errorTraceId = "";
 
       try {
         const [accessMode, registry, healthList] = await Promise.all([
@@ -42,7 +46,9 @@ export const usePortalStore = defineStore("portal", {
         this.healthList = healthList;
         this.hydrated = true;
       } catch (error) {
-        this.errorMessage = error instanceof Error ? error.message : "读取 Gateway 数据失败";
+        const uiError = toUiError(error, "读取 Gateway 数据失败");
+        this.errorMessage = uiError.message;
+        this.errorTraceId = uiError.traceId;
       } finally {
         this.isLoading = false;
       }

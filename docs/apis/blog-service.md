@@ -6,6 +6,7 @@ Base path: `/api/v1/blog`
 
 - `GET /posts`
   - 描述：分页查询文章
+  - 参数：`pageNo`、`pageSize`
   - 权限：Guest/Master
 - `GET /posts/{id}`
   - 描述：文章详情（优先命中渲染缓存，返回 `markdownContent` 与 `renderedHtml`）

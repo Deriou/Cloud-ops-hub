@@ -1,3 +1,5 @@
+import type { PagedResponse } from "@/types/api";
+
 export interface OpsStat {
   label: string;
   value: string;
@@ -21,6 +23,14 @@ export interface WorkloadItem {
   owner: string;
 }
 
+export type WorkloadPage = PagedResponse<WorkloadItem>;
+
+export interface PipelineStage {
+  name: string;
+  status: "PENDING" | "RUNNING" | "SUCCESS" | "FAILED" | "TIMEOUT";
+  duration?: string;
+}
+
 export interface PipelineRun {
   runId: string;
   jobName: string;
@@ -28,6 +38,7 @@ export interface PipelineRun {
   triggerBy: string;
   startedAt: string;
   duration: string;
+  stages?: PipelineStage[];
 }
 
 export interface DiagnosisReport {

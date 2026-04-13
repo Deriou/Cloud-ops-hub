@@ -1,7 +1,7 @@
 import { appConfig } from "@/lib/config";
 import { requestApi } from "@/lib/http";
 import { getClusterSummary, getDiagnosisReports, getPipelineRuns, getWorkloads } from "@/mock/ops";
-import type { ClusterSummary, DiagnosisReport, PipelineRun, WorkloadItem } from "@/types/ops";
+import type { ClusterSummary, DiagnosisReport, PipelineRun, WorkloadPage } from "@/types/ops";
 
 function shouldUseMockOps(): boolean {
   return appConfig.useMockOps;
@@ -15,12 +15,14 @@ export function fetchClusterSummary(): Promise<ClusterSummary> {
   return requestApi<ClusterSummary>(appConfig.opsBaseUrl, "/api/v1/ops/clusters/summary");
 }
 
-export function fetchWorkloads(): Promise<WorkloadItem[]> {
+export function fetchWorkloads(pageNo = 1, pageSize = 8): Promise<WorkloadPage> {
   if (shouldUseMockOps()) {
-    return getWorkloads();
+    return getWorkloads(pageNo, pageSize);
   }
 
-  return requestApi<WorkloadItem[]>(appConfig.opsBaseUrl, "/api/v1/ops/workloads");
+  return requestApi<WorkloadPage>(appConfig.opsBaseUrl, "/api/v1/ops/workloads", {
+    query: { pageNo, pageSize }
+  });
 }
 
 export function fetchPipelineRuns(): Promise<PipelineRun[]> {
@@ -36,5 +38,5 @@ export function fetchDiagnosisReports(): Promise<DiagnosisReport[]> {
     return getDiagnosisReports();
   }
 
-  return requestApi<DiagnosisReport[]>(appConfig.opsBaseUrl, "/api/v1/ops/diagnostics/release");
+  return requestApi<DiagnosisReport[]>(appConfig.opsBaseUrl, "/api/v1/ops/diagnostics/reports");
 }

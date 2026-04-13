@@ -5,7 +5,7 @@ import type { PostDetail, PostSummary, TaxonomyItem } from "@/types/blog";
 
 export function fetchPosts(page = 1, size = 6): Promise<PagedResponse<PostSummary>> {
   return requestApi<PagedResponse<PostSummary>>(appConfig.blogBaseUrl, "/api/v1/blog/posts", {
-    query: { page, size }
+    query: { pageNo: page, pageSize: size }
   });
 }
 

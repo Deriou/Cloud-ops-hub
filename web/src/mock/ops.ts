@@ -1,4 +1,4 @@
-import type { ClusterSummary, DiagnosisReport, PipelineRun, WorkloadItem } from "@/types/ops";
+import type { ClusterSummary, DiagnosisReport, PipelineRun, WorkloadItem, WorkloadPage } from "@/types/ops";
 
 function wait(ms: number): Promise<void> {
   return new Promise((resolve) => {
@@ -20,22 +20,71 @@ export async function getClusterSummary(): Promise<ClusterSummary> {
   };
 }
 
-export async function getWorkloads(): Promise<WorkloadItem[]> {
+const workloadItems: WorkloadItem[] = [
+  { namespace: "apps", name: "gateway-portal", kind: "Deployment", status: "HEALTHY", pods: "1/1", owner: "platform" },
+  { namespace: "apps", name: "blog-service", kind: "Deployment", status: "HEALTHY", pods: "1/1", owner: "content" },
+  { namespace: "ops", name: "jenkins", kind: "StatefulSet", status: "DEGRADED", pods: "1/1", owner: "delivery" },
+  { namespace: "obs", name: "loki", kind: "StatefulSet", status: "UNHEALTHY", pods: "0/1", owner: "observability" },
+  { namespace: "obs", name: "prometheus", kind: "StatefulSet", status: "HEALTHY", pods: "1/1", owner: "observability" },
+  { namespace: "apps", name: "portal-ui", kind: "Deployment", status: "HEALTHY", pods: "1/1", owner: "frontend" }
+];
+
+export async function getWorkloads(pageNo = 1, pageSize = 8): Promise<WorkloadPage> {
   await wait(150);
-  return [
-    { namespace: "apps", name: "gateway-portal", kind: "Deployment", status: "HEALTHY", pods: "1/1", owner: "platform" },
-    { namespace: "apps", name: "blog-service", kind: "Deployment", status: "HEALTHY", pods: "1/1", owner: "content" },
-    { namespace: "ops", name: "jenkins", kind: "StatefulSet", status: "DEGRADED", pods: "1/1", owner: "delivery" },
-    { namespace: "obs", name: "loki", kind: "StatefulSet", status: "UNHEALTHY", pods: "0/1", owner: "observability" }
-  ];
+  const start = (pageNo - 1) * pageSize;
+  const records = workloadItems.slice(start, start + pageSize);
+
+  return {
+    page: pageNo,
+    size: pageSize,
+    total: workloadItems.length,
+    totalPages: Math.max(1, Math.ceil(workloadItems.length / pageSize)),
+    records
+  };
 }
 
 export async function getPipelineRuns(): Promise<PipelineRun[]> {
   await wait(150);
   return [
-    { runId: "run-1042", jobName: "gateway-release", status: "SUCCESS", triggerBy: "jenkins-bot", startedAt: "2026-03-28T07:00:00Z", duration: "1m 54s" },
-    { runId: "run-1043", jobName: "blog-release", status: "RUNNING", triggerBy: "deriou", startedAt: "2026-03-28T07:12:00Z", duration: "36s" },
-    { runId: "run-1044", jobName: "plg-sync", status: "TIMEOUT", triggerBy: "jenkins-bot", startedAt: "2026-03-28T06:40:00Z", duration: "5m 00s" }
+    {
+      runId: "run-1042",
+      jobName: "gateway-release",
+      status: "SUCCESS",
+      triggerBy: "jenkins-bot",
+      startedAt: "2026-03-28T07:00:00Z",
+      duration: "1m 54s",
+      stages: [
+        { name: "checkout", status: "SUCCESS", duration: "18s" },
+        { name: "build", status: "SUCCESS", duration: "47s" },
+        { name: "deploy", status: "SUCCESS", duration: "49s" }
+      ]
+    },
+    {
+      runId: "run-1043",
+      jobName: "blog-release",
+      status: "RUNNING",
+      triggerBy: "deriou",
+      startedAt: "2026-03-28T07:12:00Z",
+      duration: "36s",
+      stages: [
+        { name: "checkout", status: "SUCCESS", duration: "11s" },
+        { name: "build", status: "RUNNING", duration: "25s" },
+        { name: "deploy", status: "PENDING" }
+      ]
+    },
+    {
+      runId: "run-1044",
+      jobName: "plg-sync",
+      status: "TIMEOUT",
+      triggerBy: "jenkins-bot",
+      startedAt: "2026-03-28T06:40:00Z",
+      duration: "5m 00s",
+      stages: [
+        { name: "checkout", status: "SUCCESS", duration: "16s" },
+        { name: "build", status: "SUCCESS", duration: "1m 22s" },
+        { name: "deploy", status: "TIMEOUT", duration: "3m 22s" }
+      ]
+    }
   ];
 }
 

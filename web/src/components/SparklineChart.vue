@@ -5,6 +5,8 @@ const props = defineProps<{
   points: number[];
 }>();
 
+const gradientId = `sparkline-gradient-${Math.random().toString(36).slice(2, 8)}`;
+
 const path = computed(() => {
   if (props.points.length === 0) {
     return "";
@@ -26,7 +28,14 @@ const path = computed(() => {
 
 <template>
   <svg viewBox="0 0 100 100" class="h-16 w-full overflow-visible">
-    <path d="M 0 100 L 100 100" fill="none" stroke="rgba(148,163,184,0.18)" stroke-width="2" />
-    <path :d="path" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="3" />
+    <defs>
+      <linearGradient :id="gradientId" x1="0%" x2="100%" y1="0%" y2="0%">
+        <stop offset="0%" stop-color="currentColor" stop-opacity="0.28" />
+        <stop offset="100%" stop-color="currentColor" stop-opacity="0.02" />
+      </linearGradient>
+    </defs>
+    <path d="M 0 100 L 100 100" fill="none" stroke="rgba(125, 145, 170, 0.24)" stroke-width="2" />
+    <path v-if="path" :d="`${path} L 100 100 L 0 100 Z`" :fill="`url(#${gradientId})`" opacity="0.75" />
+    <path v-if="path" :d="path" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="3.5" />
   </svg>
 </template>
