@@ -33,9 +33,12 @@ async function loadPost() {
   }
 }
 
-watch(() => props.postId, () => {
-  void loadPost();
-});
+watch(
+  () => props.postId,
+  () => {
+    void loadPost();
+  }
+);
 
 onMounted(() => {
   void loadPost();
@@ -43,21 +46,21 @@ onMounted(() => {
 </script>
 
 <template>
-  <section class="grid gap-6">
-    <div class="flex items-center justify-between">
-      <RouterLink to="/blog" class="text-sm font-medium text-sky-700 hover:text-sky-900">返回文章列表</RouterLink>
-      <StatusPill label="rendered html" tone="normal" />
+  <section class="grid gap-4">
+    <div class="flex items-center justify-between gap-4">
+      <RouterLink to="/blog" class="text-sm font-semibold text-sky-600 hover:text-sky-700">返回文章列表</RouterLink>
+      <span class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Reader View</span>
     </div>
 
     <StatePanel v-if="loading" title="Post loading" message="正在加载文章详情..." />
-    <StatePanel v-else-if="errorMessage" title="Post error" :message="errorMessage" tone="danger" :trace-id="errorTraceId" />
+    <StatePanel v-else-if="errorMessage" title="Post unavailable" :message="errorMessage" tone="danger" :trace-id="errorTraceId" />
 
-    <article v-else-if="post" class="grid gap-6">
+    <article v-else-if="post" class="grid gap-4">
       <header class="cloud-card p-6 lg:p-8">
-        <p class="eyebrow">Blog detail</p>
-        <h1 class="mt-3 text-3xl font-semibold text-ink lg:text-4xl">{{ post.title }}</h1>
-        <p class="mt-4 max-w-4xl text-sm leading-7 text-ink-soft">{{ post.summary }}</p>
-        <div class="mt-6 flex flex-wrap gap-4 text-sm text-ink-soft">
+        <p class="eyebrow">Blog Detail</p>
+        <h1 class="mt-3 max-w-4xl text-[2.2rem] font-extrabold tracking-tight text-slate-900 lg:text-[2.8rem]">{{ post.title }}</h1>
+        <p class="mt-4 max-w-4xl text-sm leading-7 text-slate-600">{{ post.summary }}</p>
+        <div class="mt-6 flex flex-wrap gap-4 text-sm text-slate-500">
           <span class="font-mono">created {{ formatFullDateTime(post.createTime) }}</span>
           <span class="font-mono">updated {{ formatFullDateTime(post.updateTime) }}</span>
           <span class="font-mono">{{ post.slug }}</span>
@@ -69,8 +72,7 @@ onMounted(() => {
       </header>
 
       <article class="cloud-card p-6 lg:p-8">
-        <p class="eyebrow">Rendered content</p>
-        <div class="article-content mt-5" v-html="post.renderedHtml" />
+        <div class="article-content" v-html="post.renderedHtml" />
       </article>
     </article>
   </section>

@@ -55,60 +55,48 @@ watch(
 </script>
 
 <template>
-  <section class="grid gap-6">
-    <article class="cloud-card p-6">
+  <section class="grid gap-4">
+    <article class="cloud-card px-6 py-6 lg:px-7">
       <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <p class="eyebrow">Workload inventory</p>
-          <h2 class="mt-3 text-2xl font-semibold text-ink">工作负载清单</h2>
-          <p class="mt-3 text-sm leading-6 text-ink-soft">
-            列表结构已经和 D1 的“前端可直接消费状态摘要与工作负载列表”对齐，后面只需要替换数据源。
-          </p>
+          <p class="eyebrow">Ops / Workloads</p>
+          <h1 class="mt-3 text-[2rem] font-extrabold tracking-tight text-slate-900">工作负载清单</h1>
+          <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">结构保留、视觉降噪，移动端继续优先展示摘要卡片，桌面端保留表格视图。</p>
         </div>
-        <p class="font-mono text-sm text-ink-soft">{{ workloadsPage.total }} workloads</p>
+        <p class="font-mono text-sm text-slate-500">{{ workloadsPage.total }} workloads</p>
       </div>
     </article>
 
     <StatePanel v-if="loading" title="Workloads loading" message="正在读取工作负载..." />
-    <StatePanel
-      v-else-if="errorMessage"
-      title="Workloads error"
-      :message="errorMessage"
-      tone="danger"
-      :trace-id="errorTraceId"
-    />
+    <StatePanel v-else-if="errorMessage" title="Workloads unavailable" :message="errorMessage" tone="danger" :trace-id="errorTraceId" />
     <StatePanel v-else-if="workloadsPage.records.length === 0" title="No workloads" message="当前页暂无工作负载数据。" />
 
     <template v-else>
       <div class="grid gap-3 md:hidden">
-        <article
-          v-for="item in workloadsPage.records"
-          :key="`${item.namespace}-${item.name}`"
-          class="cloud-card p-5"
-        >
+        <article v-for="item in workloadsPage.records" :key="`${item.namespace}-${item.name}`" class="cloud-card p-5">
           <div class="flex items-start justify-between gap-3">
             <div>
-              <p class="text-base font-semibold text-ink">{{ item.name }}</p>
-              <p class="mt-1 font-mono text-xs text-ink-soft">{{ item.namespace }} / {{ item.kind }}</p>
+              <p class="text-base font-semibold text-slate-900">{{ item.name }}</p>
+              <p class="mt-1 font-mono text-xs text-slate-500">{{ item.namespace }} / {{ item.kind }}</p>
             </div>
             <StatusPill :label="item.status" :tone="toneForStatus(item.status)" />
           </div>
-          <div class="mt-4 grid grid-cols-2 gap-3 text-sm text-ink-soft">
+          <div class="mt-4 grid grid-cols-2 gap-3 text-sm text-slate-600">
             <div>
-              <p class="eyebrow">pods</p>
-              <p class="mt-2 font-mono text-ink">{{ item.pods }}</p>
+              <p class="eyebrow">Pods</p>
+              <p class="mt-2 font-mono text-slate-900">{{ item.pods }}</p>
             </div>
             <div>
-              <p class="eyebrow">owner</p>
-              <p class="mt-2 text-ink">{{ item.owner }}</p>
+              <p class="eyebrow">Owner</p>
+              <p class="mt-2 text-slate-900">{{ item.owner }}</p>
             </div>
           </div>
         </article>
       </div>
 
-      <div class="hidden overflow-hidden rounded-[2rem] border border-sky-100 bg-white/72 shadow-soft md:block">
+      <div class="hidden overflow-hidden rounded-[2rem] border border-slate-200 bg-white/82 shadow-soft md:block">
         <table class="min-w-full">
-          <thead class="bg-sky-50/70 text-left text-xs uppercase tracking-[0.24em] text-ink-soft">
+          <thead class="bg-slate-50 text-left text-xs uppercase tracking-[0.2em] text-slate-500">
             <tr>
               <th class="px-5 py-4">namespace</th>
               <th class="px-5 py-4">name</th>
@@ -119,22 +107,22 @@ watch(
             </tr>
           </thead>
           <tbody>
-            <tr v-for="item in workloadsPage.records" :key="`${item.namespace}-${item.name}`" class="border-t border-sky-100/80">
-              <td class="px-5 py-4 font-mono text-sm text-ink-soft">{{ item.namespace }}</td>
-              <td class="px-5 py-4 text-sm font-semibold text-ink">{{ item.name }}</td>
-              <td class="px-5 py-4 text-sm text-ink-soft">{{ item.kind }}</td>
+            <tr v-for="item in workloadsPage.records" :key="`${item.namespace}-${item.name}`" class="border-t border-slate-200/80">
+              <td class="px-5 py-4 font-mono text-sm text-slate-500">{{ item.namespace }}</td>
+              <td class="px-5 py-4 text-sm font-semibold text-slate-900">{{ item.name }}</td>
+              <td class="px-5 py-4 text-sm text-slate-600">{{ item.kind }}</td>
               <td class="px-5 py-4"><StatusPill :label="item.status" :tone="toneForStatus(item.status)" /></td>
-              <td class="px-5 py-4 font-mono text-sm text-ink">{{ item.pods }}</td>
-              <td class="px-5 py-4 text-sm text-ink-soft">{{ item.owner }}</td>
+              <td class="px-5 py-4 font-mono text-sm text-slate-900">{{ item.pods }}</td>
+              <td class="px-5 py-4 text-sm text-slate-600">{{ item.owner }}</td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <div class="cloud-card-soft flex items-center justify-between p-4 text-sm text-ink-soft">
+      <div class="sub-card flex items-center justify-between p-4 text-sm text-slate-500">
         <button
           type="button"
-          class="rounded-full border border-sky-100 px-4 py-2 transition-all duration-300 ease-in-out hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
+          class="rounded-full border border-slate-200 px-4 py-2 transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
           :disabled="workloadsPage.page <= 1 || loading"
           @click="changePage(workloadsPage.page - 1)"
         >
@@ -143,7 +131,7 @@ watch(
         <span class="font-mono">page {{ workloadsPage.page }} / {{ Math.max(workloadsPage.totalPages, 1) }}</span>
         <button
           type="button"
-          class="rounded-full border border-sky-100 px-4 py-2 transition-all duration-300 ease-in-out hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
+          class="rounded-full border border-slate-200 px-4 py-2 transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
           :disabled="workloadsPage.page >= workloadsPage.totalPages || loading || workloadsPage.totalPages === 0"
           @click="changePage(workloadsPage.page + 1)"
         >

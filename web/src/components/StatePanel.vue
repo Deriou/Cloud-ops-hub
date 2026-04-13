@@ -15,13 +15,13 @@ const panelClass = computed(() => {
     case "danger":
       return "border-rose-200 bg-rose-50/90 text-rose-800";
     default:
-      return "border-sky-100 bg-white/75 text-ink-soft";
+      return "border-slate-200 bg-white/85 text-slate-600";
   }
 });
 </script>
 
 <template>
-  <article class="rounded-[1.6rem] border p-5 shadow-soft" :class="panelClass">
+  <article class="rounded-[1.5rem] border p-5 shadow-soft" :class="panelClass">
     <p class="eyebrow">{{ title }}</p>
     <p class="mt-3 text-sm leading-6">{{ message }}</p>
     <p v-if="traceId" class="mt-3 font-mono text-xs opacity-80">traceId: {{ traceId }}</p>

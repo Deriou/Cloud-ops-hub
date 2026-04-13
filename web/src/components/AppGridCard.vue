@@ -1,48 +1,73 @@
 <script setup lang="ts">
-import StatusPill from "@/components/StatusPill.vue";
-import { formatDateTime, initials, toneForStatus } from "@/lib/format";
-import type { AppHealth, AppMeta } from "@/types/gateway";
 import { computed } from "vue";
+import { RouterLink } from "vue-router";
+
+export interface AppDirectoryCard {
+  title: string;
+  description: string;
+  route: string;
+  routeLabel: string;
+  statusLabel: string;
+  tone: "normal" | "warning" | "danger";
+  summary: string;
+  appKey: string;
+  checkedAt?: string;
+  ctaLabel: string;
+  current?: boolean;
+}
 
 const props = defineProps<{
-  app: AppMeta;
-  health?: AppHealth;
+  entry: AppDirectoryCard;
 }>();
 
-const tone = computed(() => toneForStatus(props.health?.status ?? props.app.status));
+const cardClasses = computed(() =>
+  props.entry.current
+    ? "border-sky-200 bg-sky-50/92"
+    : "border-slate-200/75 bg-white/88 transition-all duration-300 hover:-translate-y-0.5 hover:border-sky-200 hover:bg-white"
+);
 </script>
 
 <template>
-  <article class="cloud-card-soft p-6 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-float">
+  <article class="sub-card flex h-full flex-col p-5" :class="cardClasses">
     <div class="flex items-start justify-between gap-4">
-      <div class="flex items-center gap-4">
-        <div class="flex h-12 w-12 items-center justify-center rounded-2xl border border-sky-100 bg-sky-50 font-mono text-sm font-semibold text-sky-700">
-          {{ initials(app.title) }}
-        </div>
-        <div>
-          <p class="text-lg font-semibold text-ink">{{ app.title }}</p>
-          <p class="text-sm text-ink-soft">{{ app.route }}</p>
-        </div>
+      <div>
+        <p class="text-lg font-bold text-slate-900">{{ entry.title }}</p>
+        <p class="mt-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">{{ entry.appKey }}</p>
       </div>
-      <StatusPill :label="health?.status ?? app.status" :tone="tone" />
+      <span
+        class="rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em]"
+        :class="
+          entry.tone === 'danger'
+            ? 'bg-rose-100 text-rose-700'
+            : entry.tone === 'warning'
+              ? 'bg-amber-100 text-amber-700'
+              : 'bg-emerald-100 text-emerald-700'
+        "
+      >
+        {{ entry.statusLabel }}
+      </span>
     </div>
 
-    <p class="mt-5 min-h-12 text-sm leading-6 text-ink-soft">{{ app.description }}</p>
+    <p class="mt-4 text-sm leading-6 text-slate-600">{{ entry.description }}</p>
 
-    <div class="mt-5 grid grid-cols-2 gap-3 text-sm text-ink-soft">
-      <div>
-        <p class="eyebrow">appKey</p>
-        <p class="mt-1 font-mono text-sm text-ink">{{ app.appKey }}</p>
-      </div>
-      <div>
-        <p class="eyebrow">checkedAt</p>
-        <p class="mt-1 font-mono text-sm text-ink">{{ health ? formatDateTime(health.checkedAt) : "-" }}</p>
+    <div class="mt-5 rounded-[1.35rem] border border-slate-200/80 bg-slate-50/80 p-4">
+      <p class="text-sm leading-6 text-slate-600">{{ entry.summary }}</p>
+      <div class="mt-3 flex flex-wrap gap-3 text-xs text-slate-500">
+        <span class="font-mono">{{ entry.routeLabel }}</span>
+        <span v-if="entry.checkedAt" class="font-mono">{{ entry.checkedAt }}</span>
       </div>
     </div>
 
-    <div class="mt-4 rounded-[1.35rem] border border-sky-100/80 bg-white/75 p-4">
-      <p class="eyebrow">message</p>
-      <p class="mt-2 text-sm text-ink-soft">{{ health?.message ?? "等待健康探测结果" }}</p>
+    <div class="mt-5 flex items-center justify-between gap-3">
+      <span class="text-xs font-semibold uppercase tracking-[0.18em] text-sky-500">
+        {{ entry.current ? "Directory" : "App Entry" }}
+      </span>
+      <RouterLink
+        :to="entry.route"
+        class="rounded-full bg-sky-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-600"
+      >
+        {{ entry.ctaLabel }}
+      </RouterLink>
     </div>
   </article>
 </template>

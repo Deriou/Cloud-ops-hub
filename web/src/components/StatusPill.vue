@@ -20,12 +20,15 @@ const classes = computed(() => {
 
 <template>
   <span
-    class="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em]"
+    class="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em]"
     :class="classes"
   >
     <span
-      class="h-2.5 w-2.5 rounded-full animate-pulse"
-      :class="tone === 'danger' ? 'bg-rose-500' : tone === 'warning' ? 'bg-amber-500' : 'bg-emerald-500'"
+      class="h-2 w-2 rounded-full"
+      :class="[
+        tone === 'danger' ? 'bg-rose-500' : tone === 'warning' ? 'bg-amber-500' : 'bg-emerald-500',
+        tone === 'danger' || tone === 'warning' ? 'animate-pulse' : ''
+      ]"
     />
     {{ label }}
   </span>

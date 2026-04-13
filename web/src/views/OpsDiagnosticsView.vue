@@ -34,50 +34,54 @@ onMounted(() => {
 </script>
 
 <template>
-  <section class="grid gap-6">
-    <article class="cloud-card p-6">
-      <p class="eyebrow">Diagnosis shell</p>
-      <h2 class="mt-3 text-2xl font-semibold text-ink">发布诊断报告</h2>
-      <p class="mt-3 text-sm leading-6 text-ink-soft">
-        报告卡片已经按 `severity / summary / rootCause / suggestions` 结构组织，方便 D3 直接替换成真实返回。
-      </p>
+  <section class="grid gap-4">
+    <article class="cloud-card px-6 py-6 lg:px-7">
+      <p class="eyebrow">Ops / Diagnostics</p>
+      <h1 class="mt-3 text-[2rem] font-extrabold tracking-tight text-slate-900">发布诊断报告</h1>
+      <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">保留报告结构与深色日志块，但整体页面回归浅色门户语境，避免喧宾夺主。</p>
     </article>
 
     <StatePanel v-if="loading" title="Diagnosis loading" message="正在收集诊断报告..." />
-    <StatePanel v-else-if="errorMessage" title="Diagnosis error" :message="errorMessage" tone="danger" :trace-id="errorTraceId" />
+    <StatePanel v-else-if="errorMessage" title="Diagnosis unavailable" :message="errorMessage" tone="danger" :trace-id="errorTraceId" />
     <StatePanel v-else-if="reports.length === 0" title="No reports" message="当前还没有诊断报告。" />
 
     <div v-else class="grid gap-4">
       <article
         v-for="report in reports"
         :key="report.reportId"
-        class="grid gap-5 rounded-[2rem] border border-sky-100 bg-white/80 p-6 shadow-soft xl:grid-cols-[1.2fr_0.8fr]"
+        class="grid gap-5 rounded-[2rem] border border-slate-200 bg-white/84 p-6 shadow-soft xl:grid-cols-[1.2fr_0.8fr]"
       >
         <div>
           <div class="flex items-start justify-between gap-4">
             <div>
-              <p class="font-mono text-sm text-ink-soft">{{ report.reportId }}</p>
-              <h3 class="mt-2 text-2xl font-semibold text-ink">{{ report.summary }}</h3>
+              <p class="font-mono text-sm text-slate-500">{{ report.reportId }}</p>
+              <h2 class="mt-2 text-[1.6rem] font-bold tracking-tight text-slate-900">{{ report.summary }}</h2>
             </div>
-            <StatusPill :label="report.severity" :tone="toneForStatus(report.severity === 'LOW' ? 'UP' : report.severity === 'MEDIUM' ? 'DEGRADED' : 'DOWN')" />
+            <StatusPill
+              :label="report.severity"
+              :tone="toneForStatus(report.severity === 'LOW' ? 'UP' : report.severity === 'MEDIUM' ? 'DEGRADED' : 'DOWN')"
+            />
           </div>
-          <div class="mt-5 rounded-[1.4rem] border border-sky-100 bg-sky-50/65 p-4">
-            <p class="eyebrow">root cause</p>
-            <p class="mt-3 text-sm leading-7 text-ink-soft">{{ report.rootCause }}</p>
+
+          <div class="mt-5 rounded-[1.4rem] border border-slate-200 bg-slate-50/85 p-4">
+            <p class="eyebrow">Root Cause</p>
+            <p class="mt-3 text-sm leading-7 text-slate-600">{{ report.rootCause }}</p>
           </div>
+
           <div class="mt-5 grid gap-3 md:grid-cols-2">
-            <div class="rounded-[1.4rem] border border-sky-100 bg-white/75 p-4">
-              <p class="eyebrow">metrics</p>
-              <div class="mt-3 grid gap-2 text-sm text-ink-soft">
+            <div class="sub-card p-4">
+              <p class="eyebrow">Metrics</p>
+              <div class="mt-3 grid gap-2 text-sm text-slate-600">
                 <div v-for="metric in report.metrics" :key="metric.label" class="flex justify-between gap-3">
                   <span>{{ metric.label }}</span>
-                  <span class="font-mono text-ink">{{ metric.value }}</span>
+                  <span class="font-mono text-slate-900">{{ metric.value }}</span>
                 </div>
               </div>
             </div>
-            <div class="rounded-[1.4rem] border border-sky-100 bg-white/75 p-4">
-              <p class="eyebrow">suggestions</p>
-              <ul class="mt-3 grid gap-2 text-sm text-ink-soft">
+
+            <div class="sub-card p-4">
+              <p class="eyebrow">Suggestions</p>
+              <ul class="mt-3 grid gap-2 text-sm text-slate-600">
                 <li v-for="suggestion in report.suggestions" :key="suggestion">{{ suggestion }}</li>
               </ul>
             </div>
@@ -85,12 +89,12 @@ onMounted(() => {
         </div>
 
         <div class="cloud-card-dark p-4">
-          <p class="eyebrow !text-slate-400">logs</p>
+          <p class="eyebrow !text-slate-400">Logs</p>
           <div class="mt-3 grid gap-3">
             <pre
               v-for="line in report.logs"
               :key="line"
-              class="overflow-x-auto rounded-[1.2rem] border border-white/10 bg-black/20 p-3 font-mono text-xs text-slate-200"
+              class="overflow-x-auto rounded-[1rem] border border-white/10 bg-black/18 p-3 font-mono text-xs text-slate-200"
             >{{ line }}</pre>
           </div>
         </div>

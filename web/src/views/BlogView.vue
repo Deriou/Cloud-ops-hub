@@ -49,9 +49,7 @@ async function loadPosts(page = 1) {
   errorTraceId.value = "";
 
   try {
-    postsPage.value = keyword.value
-      ? await searchPosts(keyword.value, page, 6)
-      : await fetchPosts(page, 6);
+    postsPage.value = keyword.value ? await searchPosts(keyword.value, page, 6) : await fetchPosts(page, 6);
   } catch (error) {
     const uiError = toUiError(error, "读取文章列表失败");
     errorMessage.value = uiError.message;
@@ -101,18 +99,16 @@ onMounted(() => {
 </script>
 
 <template>
-  <section class="grid gap-6 xl:grid-cols-[1.7fr_1fr]">
-    <div class="grid gap-6">
-      <article class="cloud-card p-6">
-        <p class="eyebrow">Blog service</p>
+  <section class="grid gap-4 xl:grid-cols-[1.65fr_0.95fr]">
+    <div class="grid gap-4">
+      <article class="cloud-card px-6 py-6 lg:px-7">
+        <p class="eyebrow">Blog</p>
         <div class="mt-3 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <h2 class="text-2xl font-semibold text-ink">文章浏览与搜索</h2>
-            <p class="mt-2 text-sm leading-6 text-ink-soft">
-              对接 `posts`、`search`、`tags`、`categories` 四类只读接口，先完成 Guest 模式友好的内容浏览链路。
-            </p>
+            <h1 class="text-[2rem] font-extrabold tracking-tight text-slate-900">文章浏览与搜索</h1>
+            <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">保留搜索、分页与 taxonomy 入口，但整体表达更偏阅读而不是控制台。</p>
           </div>
-          <StatusPill :label="keyword ? 'search mode' : 'list mode'" :tone="keyword ? 'warning' : 'normal'" />
+          <StatusPill :label="keyword ? 'Search' : 'Browse'" :tone="keyword ? 'warning' : 'normal'" />
         </div>
 
         <form class="mt-5 grid gap-3 md:grid-cols-[minmax(0,1fr)_auto]" @submit.prevent="submitSearch">
@@ -120,11 +116,11 @@ onMounted(() => {
             v-model.trim="keyword"
             type="search"
             placeholder="搜索文章标题或正文关键词"
-            class="rounded-[1.2rem] border border-sky-100 bg-white/85 px-4 py-3 text-sm text-ink outline-none transition-all duration-300 ease-in-out placeholder:text-ink-soft focus:border-sky-300"
+            class="rounded-[1.15rem] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-300"
           />
           <button
             type="submit"
-            class="rounded-[1.2rem] border border-sky-200 bg-sky-500 px-5 py-3 text-sm font-semibold text-white transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:bg-sky-600"
+            class="rounded-[1.15rem] bg-sky-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-sky-600"
           >
             查询
           </button>
@@ -132,39 +128,39 @@ onMounted(() => {
       </article>
 
       <section class="grid gap-4">
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-between gap-4">
           <div>
-            <p class="eyebrow">Content list</p>
-            <h3 class="mt-2 text-2xl font-semibold text-ink">{{ pageTitle }}</h3>
+            <p class="eyebrow">Content List</p>
+            <h2 class="mt-2 text-[1.8rem] font-bold tracking-tight text-slate-900">{{ pageTitle }}</h2>
           </div>
-          <p class="font-mono text-sm text-ink-soft">{{ postsPage.total }} records</p>
+          <p class="font-mono text-sm text-slate-500">{{ postsPage.total }} records</p>
         </div>
 
-        <StatePanel v-if="loading" title="Blog loading" message="正在加载文章列表..." />
-        <StatePanel v-else-if="errorMessage" title="Blog error" :message="errorMessage" tone="danger" :trace-id="errorTraceId" />
+        <StatePanel v-if="loading" title="Content loading" message="正在加载文章列表..." />
+        <StatePanel v-else-if="errorMessage" title="Blog unavailable" :message="errorMessage" tone="danger" :trace-id="errorTraceId" />
         <StatePanel v-else-if="postsPage.records.length === 0" title="No posts" message="当前筛选条件下没有可显示的文章。" />
 
         <article
           v-for="post in postsPage.records"
           :key="post.id"
-          class="cloud-card p-6 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-float"
+          class="cloud-card p-6 transition hover:-translate-y-0.5 hover:shadow-float"
         >
           <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div>
-              <RouterLink :to="`/blog/posts/${post.id}`" class="text-xl font-semibold text-ink hover:text-sky-700">
+              <RouterLink :to="`/blog/posts/${post.id}`" class="text-[1.35rem] font-bold tracking-tight text-slate-900 hover:text-sky-600">
                 {{ post.title }}
               </RouterLink>
-              <p class="mt-2 text-sm text-ink-soft">{{ post.slug }}</p>
+              <p class="mt-2 font-mono text-xs text-slate-400">{{ post.slug }}</p>
             </div>
-            <span class="font-mono text-sm text-ink-soft">{{ formatDateTime(post.updateTime) }}</span>
+            <span class="font-mono text-sm text-slate-500">{{ formatDateTime(post.updateTime) }}</span>
           </div>
-          <p class="mt-4 text-sm leading-7 text-ink-soft">{{ post.summary }}</p>
+          <p class="mt-4 text-sm leading-7 text-slate-600">{{ post.summary }}</p>
         </article>
 
-        <div class="cloud-card-soft flex items-center justify-between p-4 text-sm text-ink-soft">
+        <div class="sub-card flex items-center justify-between p-4 text-sm text-slate-500">
           <button
             type="button"
-            class="rounded-full border border-sky-100 px-4 py-2 transition-all duration-300 ease-in-out hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
+            class="rounded-full border border-slate-200 px-4 py-2 transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
             :disabled="postsPage.page <= 1 || loading"
             @click="changePage(postsPage.page - 1)"
           >
@@ -173,7 +169,7 @@ onMounted(() => {
           <span class="font-mono">page {{ postsPage.page }} / {{ Math.max(postsPage.totalPages, 1) }}</span>
           <button
             type="button"
-            class="rounded-full border border-sky-100 px-4 py-2 transition-all duration-300 ease-in-out hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
+            class="rounded-full border border-slate-200 px-4 py-2 transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
             :disabled="postsPage.page >= postsPage.totalPages || loading || postsPage.totalPages === 0"
             @click="changePage(postsPage.page + 1)"
           >
@@ -183,24 +179,27 @@ onMounted(() => {
       </section>
     </div>
 
-    <aside class="grid gap-6">
+    <aside class="grid gap-4">
       <article class="cloud-card p-6">
-        <p class="eyebrow">Tag entry</p>
-        <h3 class="mt-2 text-xl font-semibold text-ink">标签入口</h3>
+        <p class="eyebrow">Tags</p>
+        <div class="mt-3 flex items-center justify-between gap-4">
+          <h3 class="text-xl font-bold text-slate-900">标签入口</h3>
+          <span class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">{{ tags.length }} tags</span>
+        </div>
         <StatePanel
           v-if="taxonomyError"
           class="mt-4"
-          title="Taxonomy error"
+          title="Taxonomy unavailable"
           :message="taxonomyError"
           tone="warning"
           :trace-id="taxonomyTraceId"
         />
-        <div class="mt-4 flex flex-wrap gap-2">
+        <div v-else class="mt-4 flex flex-wrap gap-2">
           <button
             v-for="tag in tags"
             :key="tag.id"
             type="button"
-            class="rounded-full border border-sky-100 bg-white/75 px-3 py-2 text-sm text-ink-soft transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:border-sky-200 hover:bg-white"
+            class="rounded-full border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600 transition hover:-translate-y-0.5 hover:border-sky-200 hover:text-sky-600"
             @click="quickSearch(tag)"
           >
             {{ tag.name }}
@@ -209,18 +208,21 @@ onMounted(() => {
       </article>
 
       <article class="cloud-card p-6">
-        <p class="eyebrow">Category entry</p>
-        <h3 class="mt-2 text-xl font-semibold text-ink">分类入口</h3>
+        <p class="eyebrow">Categories</p>
+        <div class="mt-3 flex items-center justify-between gap-4">
+          <h3 class="text-xl font-bold text-slate-900">分类入口</h3>
+          <span class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">{{ categories.length }} categories</span>
+        </div>
         <div class="mt-4 grid gap-3">
           <button
             v-for="category in categories"
             :key="category.id"
             type="button"
-            class="rounded-[1.3rem] border border-sky-100 bg-white/75 px-4 py-3 text-left text-sm text-ink transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:border-sky-200 hover:bg-white"
+            class="sub-card px-4 py-3 text-left transition hover:-translate-y-0.5 hover:border-sky-200"
             @click="quickSearch(category)"
           >
-            <p class="font-medium">{{ category.name }}</p>
-            <p class="mt-1 font-mono text-xs text-ink-soft">{{ category.slug }}</p>
+            <p class="text-sm font-semibold text-slate-900">{{ category.name }}</p>
+            <p class="mt-1 font-mono text-xs text-slate-400">{{ category.slug }}</p>
           </button>
         </div>
       </article>

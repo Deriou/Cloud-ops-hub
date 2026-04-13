@@ -21,10 +21,10 @@ const toneLabel = computed(() => {
 </script>
 
 <template>
-  <article class="cloud-card-soft p-5 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-float">
+  <article class="sub-card p-5 transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:shadow-float">
     <div class="flex items-start justify-between gap-4">
       <div>
-        <p class="text-sm font-medium text-ink-soft">{{ stat.label }}</p>
+        <p class="text-sm font-medium text-slate-500">{{ stat.label }}</p>
         <p class="metric-value mt-3">{{ stat.value }}</p>
       </div>
       <StatusPill :label="toneLabel" :tone="stat.tone" />

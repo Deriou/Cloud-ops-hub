@@ -34,17 +34,17 @@ onMounted(() => {
 </script>
 
 <template>
-  <section class="grid gap-6">
-    <article class="cloud-card p-6">
-      <p class="eyebrow">Ops shell</p>
-      <h2 class="mt-3 text-2xl font-semibold text-ink">集群摘要</h2>
-      <p class="mt-3 text-sm leading-6 text-ink-soft">
-        当前默认使用 mock adapter，后续 D1 完成后可直接切换到 `/api/v1/ops/clusters/summary`。
+  <section class="grid gap-4">
+    <article class="cloud-card px-6 py-6 lg:px-7">
+      <p class="eyebrow">Ops / Cluster</p>
+      <h1 class="mt-3 text-[2rem] font-extrabold tracking-tight text-slate-900">集群摘要</h1>
+      <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
+        保留原有结构与数据接口，但回到更轻的门户表达，只展示关键摘要而不是控制台式总览。
       </p>
     </article>
 
     <StatePanel v-if="loading" title="Cluster loading" message="正在汇总集群状态..." />
-    <StatePanel v-else-if="errorMessage" title="Cluster error" :message="errorMessage" tone="danger" :trace-id="errorTraceId" />
+    <StatePanel v-else-if="errorMessage" title="Cluster unavailable" :message="errorMessage" tone="danger" :trace-id="errorTraceId" />
 
     <template v-else-if="summary">
       <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -53,17 +53,17 @@ onMounted(() => {
 
       <article class="cloud-card p-6">
         <div class="grid gap-4 md:grid-cols-3">
-          <div>
-            <p class="eyebrow">cluster</p>
-            <p class="mt-2 font-mono text-lg text-ink">{{ summary.clusterName }}</p>
+          <div class="sub-card p-4">
+            <p class="eyebrow">Cluster</p>
+            <p class="mt-2 font-mono text-lg text-slate-900">{{ summary.clusterName }}</p>
           </div>
-          <div>
-            <p class="eyebrow">region</p>
-            <p class="mt-2 font-mono text-lg text-ink">{{ summary.region }}</p>
+          <div class="sub-card p-4">
+            <p class="eyebrow">Region</p>
+            <p class="mt-2 font-mono text-lg text-slate-900">{{ summary.region }}</p>
           </div>
-          <div>
-            <p class="eyebrow">checkedAt</p>
-            <p class="mt-2 font-mono text-lg text-ink">{{ formatFullDateTime(summary.checkedAt) }}</p>
+          <div class="sub-card p-4">
+            <p class="eyebrow">Checked At</p>
+            <p class="mt-2 font-mono text-lg text-slate-900">{{ formatFullDateTime(summary.checkedAt) }}</p>
           </div>
         </div>
       </article>
