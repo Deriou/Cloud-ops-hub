@@ -38,6 +38,11 @@ public class AuthInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        if (isPublicImageReadRequest(request)) {
+            request.setAttribute(ACCESS_MODE_ATTRIBUTE, GUEST_MODE);
+            return true;
+        }
+
         String opsKey = request.getHeader(HEADER_NAME);
         if (opsKey == null || opsKey.isBlank()) {
             log.warn("Access denied: missing ops key, method={}, path={}", request.getMethod(), request.getRequestURI());
@@ -74,6 +79,12 @@ public class AuthInterceptor implements HandlerInterceptor {
 
     boolean isReadOnlyRequest(String method) {
         return HttpMethod.GET.matches(method);
+    }
+
+    boolean isPublicImageReadRequest(HttpServletRequest request) {
+        return HttpMethod.GET.matches(request.getMethod())
+                && request.getRequestURI() != null
+                && request.getRequestURI().startsWith("/api/v1/blog/assets/images/");
     }
 
     private boolean writeFailure(HttpServletResponse response, ResultCode resultCode) throws IOException {

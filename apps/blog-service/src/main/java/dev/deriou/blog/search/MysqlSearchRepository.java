@@ -39,7 +39,8 @@ public class MysqlSearchRepository implements SearchRepository {
         String countSql = """
                 select count(*)
                 from post
-                where match(title, markdown_content) against (? in natural language mode)
+                where status = 'published'
+                  and match(title, markdown_content) against (? in natural language mode)
                 """;
 
         String searchSql = """
@@ -55,7 +56,8 @@ public class MysqlSearchRepository implements SearchRepository {
                                  else 0
                              end as score
                 from post
-                where match(title, markdown_content) against (? in natural language mode)
+                where status = 'published'
+                  and match(title, markdown_content) against (? in natural language mode)
                 order by score desc, update_time desc, id desc
                 limit ? offset ?
                 """;

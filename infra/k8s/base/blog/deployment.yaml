@@ -17,6 +17,10 @@ spec:
     spec:
       imagePullSecrets:
         - name: acr-secret
+      volumes:
+        - name: blog-assets
+          persistentVolumeClaim:
+            claimName: blog-assets-pvc
       containers:
         - name: blog-service
           image: crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com/cloud-ops-hub/blog-service:0.0.1
@@ -37,6 +41,9 @@ spec:
                 secretKeyRef:
                   name: cloud-ops-secret
                   key: OPS_AUTH_MASTER_KEY
+          volumeMounts:
+            - name: blog-assets
+              mountPath: /data/blog-assets
           resources:
             requests:
               cpu: 100m

@@ -45,10 +45,14 @@ public class PostController {
     @Operation(summary = "分页查询文章", description = "按更新时间倒序返回文章分页列表")
     @GetMapping
     public ApiResponse<PagedResponse<PostSummaryResponse>> listPosts(
-            @RequestParam(defaultValue = "1") long page,
-            @RequestParam(defaultValue = "10") long size
+            @RequestParam(name = "pageNo", required = false) Long pageNo,
+            @RequestParam(name = "page", required = false) Long page,
+            @RequestParam(name = "pageSize", required = false) Long pageSize,
+            @RequestParam(name = "size", required = false) Long size
     ) {
-        return ApiResponse.success(postService.listPosts(new PostPageQuery(page, size)));
+        long resolvedPage = pageNo != null ? pageNo : (page != null ? page : 1L);
+        long resolvedSize = pageSize != null ? pageSize : (size != null ? size : 10L);
+        return ApiResponse.success(postService.listPosts(new PostPageQuery(resolvedPage, resolvedSize)));
     }
 
     @Operation(summary = "查询文章详情", description = "返回文章正文及已绑定的标签、分类")

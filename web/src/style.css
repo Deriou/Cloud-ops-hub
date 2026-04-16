@@ -165,6 +165,7 @@ input {
 
 .article-content a {
   color: #0569a8;
+  overflow-wrap: anywhere;
 }
 
 .article-content pre {
@@ -173,6 +174,41 @@ input {
   background: rgba(18, 31, 48, 0.96);
   color: #f8fbff;
   padding: 1rem 1.1rem;
+}
+
+.article-content pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+}
+
+.article-content img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 1.25rem auto;
+  border-radius: 1rem;
+  box-shadow: 0 14px 28px rgba(20, 47, 73, 0.12);
+}
+
+.article-content table {
+  width: 100%;
+  border-collapse: collapse;
+  display: block;
+  overflow-x: auto;
+  margin: 0 0 1rem;
+}
+
+.article-content th,
+.article-content td {
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  padding: 0.75rem 0.9rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.article-content th {
+  background: rgba(226, 232, 240, 0.5);
 }
 
 .article-content blockquote {

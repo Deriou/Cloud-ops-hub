@@ -41,8 +41,11 @@ public class H2SearchRepository implements SearchRepository {
         String countSql = """
                 select count(*)
                 from post
-                where lower(title) like ?
-                   or lower(cast(markdown_content as varchar)) like ?
+                where status = 'published'
+                  and (
+                      lower(title) like ?
+                      or lower(cast(markdown_content as varchar)) like ?
+                  )
                 """;
 
         String searchSql = """
@@ -64,8 +67,11 @@ public class H2SearchRepository implements SearchRepository {
                            end
                        ) as score
                 from post
-                where lower(title) like ?
-                   or lower(cast(markdown_content as varchar)) like ?
+                where status = 'published'
+                  and (
+                      lower(title) like ?
+                      or lower(cast(markdown_content as varchar)) like ?
+                  )
                 order by score desc, update_time desc, id desc
                 limit ? offset ?
                 """;

@@ -63,7 +63,6 @@ onMounted(() => {
         <div class="mt-6 flex flex-wrap gap-4 text-sm text-slate-500">
           <span class="font-mono">created {{ formatFullDateTime(post.createTime) }}</span>
           <span class="font-mono">updated {{ formatFullDateTime(post.updateTime) }}</span>
-          <span class="font-mono">{{ post.slug }}</span>
         </div>
         <div class="mt-5 flex flex-wrap gap-2">
           <StatusPill v-for="tag in post.tags" :key="tag.id" :label="tag.name" tone="normal" />

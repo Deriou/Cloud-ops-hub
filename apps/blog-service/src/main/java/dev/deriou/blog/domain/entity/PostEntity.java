@@ -10,12 +10,17 @@ public class PostEntity {
 
     @TableId(type = IdType.AUTO)
     private Long id;
+    private String noteId;
+    private String status;
+    private String sourcePath;
+    private String contentHash;
     private String title;
     private String slug;
     private String markdownContent;
     private String summary;
     private LocalDateTime createTime;
     private LocalDateTime updateTime;
+    private LocalDateTime lastSyncTime;
 
     public Long getId() {
         return id;
@@ -23,6 +28,38 @@ public class PostEntity {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getNoteId() {
+        return noteId;
+    }
+
+    public void setNoteId(String noteId) {
+        this.noteId = noteId;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getSourcePath() {
+        return sourcePath;
+    }
+
+    public void setSourcePath(String sourcePath) {
+        this.sourcePath = sourcePath;
+    }
+
+    public String getContentHash() {
+        return contentHash;
+    }
+
+    public void setContentHash(String contentHash) {
+        this.contentHash = contentHash;
     }
 
     public String getTitle() {
@@ -71,5 +108,13 @@ public class PostEntity {
 
     public void setUpdateTime(LocalDateTime updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public LocalDateTime getLastSyncTime() {
+        return lastSyncTime;
+    }
+
+    public void setLastSyncTime(LocalDateTime lastSyncTime) {
+        this.lastSyncTime = lastSyncTime;
     }
 }

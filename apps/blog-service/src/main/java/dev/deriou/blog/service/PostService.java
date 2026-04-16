@@ -7,6 +7,7 @@ import dev.deriou.blog.converter.TaxonomyConverter;
 import dev.deriou.blog.domain.entity.CategoryEntity;
 import dev.deriou.blog.domain.entity.PostCategoryEntity;
 import dev.deriou.blog.domain.entity.PostEntity;
+import dev.deriou.blog.domain.entity.PostStatus;
 import dev.deriou.blog.domain.entity.PostTagEntity;
 import dev.deriou.blog.domain.entity.TagEntity;
 import dev.deriou.blog.dto.common.PagedResponse;
@@ -71,6 +72,7 @@ public class PostService {
         PostEntity entity = new PostEntity();
         entity.setTitle(title);
         entity.setSlug(slug);
+        entity.setStatus(PostStatus.PUBLISHED);
         entity.setMarkdownContent(markdownContent);
         entity.setSummary(normalizeOptionalText(request.summary()));
         entity.setCreateTime(now);
@@ -102,6 +104,9 @@ public class PostService {
         existing.setMarkdownContent(markdownContent);
         existing.setSummary(normalizeOptionalText(request.summary()));
         existing.setUpdateTime(LocalDateTime.now());
+        if (existing.getStatus() == null || existing.getStatus().isBlank()) {
+            existing.setStatus(PostStatus.PUBLISHED);
+        }
         postMapper.updateById(existing);
 
         replaceTagRelations(postId, tagIds);
@@ -114,6 +119,7 @@ public class PostService {
 
         Page<PostEntity> pageRequest = Page.of(query.page(), query.size());
         Page<PostEntity> pageResult = postMapper.selectPage(pageRequest, new LambdaQueryWrapper<PostEntity>()
+                .eq(PostEntity::getStatus, PostStatus.PUBLISHED)
                 .orderByDesc(PostEntity::getUpdateTime)
                 .orderByDesc(PostEntity::getId));
 
@@ -133,7 +139,7 @@ public class PostService {
     }
 
     public PostDetailResponse getPostDetail(Long postId) {
-        PostEntity entity = requirePost(postId);
+        PostEntity entity = requirePublishedPost(postId);
 
         String renderedHtml = postRenderService.getRenderedHtml(entity);
         List<TaxonomyResponse> tags = loadTags(postId);
@@ -141,7 +147,7 @@ public class PostService {
         return PostConverter.toDetail(entity, renderedHtml, tags, categories);
     }
 
-    private void validatePageQuery(PostPageQuery query) {
+    void validatePageQuery(PostPageQuery query) {
         if (query.page() < 1) {
             throw new BizException(ResultCode.BIZ_ERROR, "page must be greater than 0");
         }
@@ -153,11 +159,11 @@ public class PostService {
         }
     }
 
-    private void validatePostUniqueness(String slug) {
+    void validatePostUniqueness(String slug) {
         validatePostUniqueness(slug, null);
     }
 
-    private void validatePostUniqueness(String slug, Long excludedPostId) {
+    void validatePostUniqueness(String slug, Long excludedPostId) {
         LambdaQueryWrapper<PostEntity> query = new LambdaQueryWrapper<PostEntity>()
                 .eq(PostEntity::getSlug, slug);
         if (excludedPostId != null) {
@@ -170,7 +176,7 @@ public class PostService {
         }
     }
 
-    private void saveTagRelations(Long postId, List<Long> tagIds) {
+    void saveTagRelations(Long postId, List<Long> tagIds) {
         for (Long tagId : tagIds) {
             PostTagEntity entity = new PostTagEntity();
             entity.setPostId(postId);
@@ -179,13 +185,13 @@ public class PostService {
         }
     }
 
-    private void replaceTagRelations(Long postId, List<Long> tagIds) {
+    void replaceTagRelations(Long postId, List<Long> tagIds) {
         postTagMapper.delete(new LambdaQueryWrapper<PostTagEntity>()
                 .eq(PostTagEntity::getPostId, postId));
         saveTagRelations(postId, tagIds);
     }
 
-    private void saveCategoryRelations(Long postId, List<Long> categoryIds) {
+    void saveCategoryRelations(Long postId, List<Long> categoryIds) {
         for (Long categoryId : categoryIds) {
             PostCategoryEntity entity = new PostCategoryEntity();
             entity.setPostId(postId);
@@ -194,13 +200,13 @@ public class PostService {
         }
     }
 
-    private void replaceCategoryRelations(Long postId, List<Long> categoryIds) {
+    void replaceCategoryRelations(Long postId, List<Long> categoryIds) {
         postCategoryMapper.delete(new LambdaQueryWrapper<PostCategoryEntity>()
                 .eq(PostCategoryEntity::getPostId, postId));
         saveCategoryRelations(postId, categoryIds);
     }
 
-    private List<TaxonomyResponse> loadTags(Long postId) {
+    List<TaxonomyResponse> loadTags(Long postId) {
         List<Long> tagIds = postTagMapper.selectList(new LambdaQueryWrapper<PostTagEntity>()
                         .eq(PostTagEntity::getPostId, postId))
                 .stream()
@@ -213,7 +219,7 @@ public class PostService {
                 .toList();
     }
 
-    private List<TaxonomyResponse> loadCategories(Long postId) {
+    List<TaxonomyResponse> loadCategories(Long postId) {
         List<Long> categoryIds = postCategoryMapper.selectList(new LambdaQueryWrapper<PostCategoryEntity>()
                         .eq(PostCategoryEntity::getPostId, postId))
                 .stream()
@@ -226,7 +232,7 @@ public class PostService {
                 .toList();
     }
 
-    private List<Long> distinctIds(List<Long> ids) {
+    List<Long> distinctIds(List<Long> ids) {
         if (ids == null || ids.isEmpty()) {
             return List.of();
         }
@@ -236,14 +242,14 @@ public class PostService {
                 .toList();
     }
 
-    private String normalizeOptionalText(String value) {
+    String normalizeOptionalText(String value) {
         if (value == null || value.isBlank()) {
             return null;
         }
         return value.trim();
     }
 
-    private PostEntity requirePost(Long postId) {
+    PostEntity requirePost(Long postId) {
         if (postId == null) {
             throw new BizException(ResultCode.BIZ_ERROR, "post id must not be null");
         }
@@ -253,6 +259,14 @@ public class PostService {
             throw new BizException(ResultCode.BIZ_ERROR, "post not found");
         }
 
+        return entity;
+    }
+
+    private PostEntity requirePublishedPost(Long postId) {
+        PostEntity entity = requirePost(postId);
+        if (!PostStatus.isPublished(entity.getStatus())) {
+            throw new BizException(ResultCode.BIZ_ERROR, "post not found");
+        }
         return entity;
     }
 }

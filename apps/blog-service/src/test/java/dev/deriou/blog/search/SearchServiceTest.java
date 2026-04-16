@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import dev.deriou.blog.domain.entity.PostEntity;
+import dev.deriou.blog.domain.entity.PostStatus;
 import dev.deriou.blog.dto.common.PagedResponse;
 import dev.deriou.blog.dto.post.PostSummaryResponse;
 import dev.deriou.blog.mapper.PostMapper;
@@ -73,6 +74,7 @@ class SearchServiceTest {
     private void insertPost(String slug, String title, String markdownContent, LocalDateTime updateTime) {
         PostEntity entity = new PostEntity();
         entity.setSlug(slug);
+        entity.setStatus(PostStatus.PUBLISHED);
         entity.setTitle(title);
         entity.setMarkdownContent(markdownContent);
         entity.setSummary(title + " summary");

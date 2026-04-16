@@ -22,6 +22,7 @@ resources:
   - gateway/service.yaml
 
   # Blog
+  - blog/pv-pvc.yaml
   - blog/deployment.yaml
   - blog/service.yaml
 
@@ -31,4 +32,3 @@ resources:
 
   # Ingress
   - ingress.yaml
-

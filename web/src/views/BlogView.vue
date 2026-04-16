@@ -150,7 +150,6 @@ onMounted(() => {
               <RouterLink :to="`/blog/posts/${post.id}`" class="text-[1.35rem] font-bold tracking-tight text-slate-900 hover:text-sky-600">
                 {{ post.title }}
               </RouterLink>
-              <p class="mt-2 font-mono text-xs text-slate-400">{{ post.slug }}</p>
             </div>
             <span class="font-mono text-sm text-slate-500">{{ formatDateTime(post.updateTime) }}</span>
           </div>

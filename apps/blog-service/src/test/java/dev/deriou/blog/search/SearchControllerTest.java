@@ -5,6 +5,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import dev.deriou.blog.domain.entity.PostEntity;
+import dev.deriou.blog.domain.entity.PostStatus;
 import dev.deriou.blog.mapper.PostMapper;
 import dev.deriou.common.auth.AuthInterceptor;
 import dev.deriou.common.auth.GuestTokenStore;
@@ -70,6 +71,7 @@ class SearchControllerTest {
     private void insertPost(String slug, String title, String markdownContent, LocalDateTime updateTime) {
         PostEntity entity = new PostEntity();
         entity.setSlug(slug);
+        entity.setStatus(PostStatus.PUBLISHED);
         entity.setTitle(title);
         entity.setMarkdownContent(markdownContent);
         entity.setSummary(title + " summary");
