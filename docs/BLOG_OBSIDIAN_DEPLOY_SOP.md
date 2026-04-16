@@ -132,6 +132,23 @@ kubectl -n cloud-ops exec -i deploy/mysql -- sh -c 'mysql -uroot -p"$MYSQL_ROOT_
   - `uk_post_note_id`
   - `idx_post_status`
 
+说明：
+- 当前迁移 SQL 已改为“先查询 `information_schema` 再动态执行”的兼容写法
+- 这样可以避免依赖某些 MySQL 版本不支持的：
+  - `ADD COLUMN IF NOT EXISTS`
+  - `CREATE INDEX IF NOT EXISTS`
+- 这份 SQL 可以重复执行；如果字段或索引已经存在，会自动跳过对应步骤
+
+如果你在服务器上之前已经执行过旧版 SQL，请先确保代码已更新：
+
+```bash
+cd ~/projects/Cloud-ops-hub
+git pull
+```
+
+作用：
+- 拉取最新迁移脚本，避免继续使用旧版不兼容 SQL
+
 ### 3.5 检查数据库迁移结果
 
 ```bash
@@ -140,6 +157,25 @@ kubectl -n cloud-ops exec -it deploy/mysql -- sh -c 'mysql -uroot -p"$MYSQL_ROOT
 
 作用：
 - 查看 `post` 表结构，确认新增字段已存在
+
+再检查索引：
+
+```bash
+kubectl -n cloud-ops exec -it deploy/mysql -- sh -c 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" -e "use db_blog; show index from post;"'
+```
+
+作用：
+- 确认以下索引已经创建：
+  - `uk_post_note_id`
+  - `idx_post_status`
+
+预期新增字段：
+
+- `note_id`
+- `status`
+- `source_path`
+- `content_hash`
+- `last_sync_time`
 
 ### 3.6 准备博客图片目录
 
@@ -516,6 +552,50 @@ kubectl -n cloud-ops exec -i deploy/mysql -- sh -c 'mysql -uroot -p"$MYSQL_ROOT_
 
 注意：
 - 数据库恢复会覆盖当前数据，只在确认需要回退时执行
+
+### 7.4 迁移 SQL 报语法不支持
+
+典型报错：
+
+```text
+ERROR 1064 (42000): ... near 'if not exists ...'
+```
+
+原因：
+- 你的 MySQL 版本不支持某些 DDL 语法，例如：
+  - `ADD COLUMN IF NOT EXISTS`
+  - `CREATE INDEX IF NOT EXISTS`
+
+处理步骤：
+
+1. 先更新仓库代码
+
+```bash
+cd ~/projects/Cloud-ops-hub
+git pull
+```
+
+作用：
+- 拉取已经改成兼容版的迁移脚本
+
+2. 重新执行迁移
+
+```bash
+kubectl -n cloud-ops exec -i deploy/mysql -- sh -c 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" db_blog' < apps/blog-service/src/main/resources/db/mysql/obsidian-publishing-migration.sql
+```
+
+作用：
+- 使用兼容版 SQL 重新迁移 `post` 表
+
+3. 再执行字段和索引检查
+
+```bash
+kubectl -n cloud-ops exec -it deploy/mysql -- sh -c 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" -e "use db_blog; desc post;"'
+kubectl -n cloud-ops exec -it deploy/mysql -- sh -c 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" -e "use db_blog; show index from post;"'
+```
+
+作用：
+- 确认迁移已经成功落库
 
 ---
 
