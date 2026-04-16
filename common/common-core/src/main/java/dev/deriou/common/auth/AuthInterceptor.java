@@ -38,7 +38,7 @@ public class AuthInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        if (isPublicImageReadRequest(request)) {
+        if (isPublicReadRequest(request)) {
             request.setAttribute(ACCESS_MODE_ATTRIBUTE, GUEST_MODE);
             return true;
         }
@@ -81,10 +81,40 @@ public class AuthInterceptor implements HandlerInterceptor {
         return HttpMethod.GET.matches(method);
     }
 
+    boolean isPublicReadRequest(HttpServletRequest request) {
+        return isPublicBlogReadRequest(request) || isPublicImageReadRequest(request);
+    }
+
+    boolean isPublicBlogReadRequest(HttpServletRequest request) {
+        if (!HttpMethod.GET.matches(request.getMethod())) {
+            return false;
+        }
+
+        String requestUri = request.getRequestURI();
+        if (requestUri == null) {
+            return false;
+        }
+
+        return "/api/v1/blog/posts".equals(requestUri)
+                || isSingleSegmentResourceRequest(requestUri, "/api/v1/blog/posts/")
+                || "/api/v1/blog/search".equals(requestUri)
+                || "/api/v1/blog/tags".equals(requestUri)
+                || "/api/v1/blog/categories".equals(requestUri);
+    }
+
     boolean isPublicImageReadRequest(HttpServletRequest request) {
         return HttpMethod.GET.matches(request.getMethod())
                 && request.getRequestURI() != null
                 && request.getRequestURI().startsWith("/api/v1/blog/assets/images/");
+    }
+
+    private boolean isSingleSegmentResourceRequest(String requestUri, String prefix) {
+        if (!requestUri.startsWith(prefix)) {
+            return false;
+        }
+
+        String resourceId = requestUri.substring(prefix.length());
+        return !resourceId.isBlank() && !resourceId.contains("/");
     }
 
     private boolean writeFailure(HttpServletResponse response, ResultCode resultCode) throws IOException {

@@ -88,8 +88,7 @@ class NoteImportControllerTest {
         assertThat(entity.getSlug()).isEqualTo("obsidian-8d8e48af-5ea6-4d81-8f36-8a50d0a83624");
         assertThat(entity.getCreateTime()).isEqualTo(LocalDateTime.parse("2024-01-10T21:00:00"));
 
-        mockMvc.perform(get("/api/v1/blog/posts/{postId}", postId)
-                        .header(HEADER_NAME, GUEST_TOKEN_VALUE))
+        mockMvc.perform(get("/api/v1/blog/posts/{postId}", postId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.title").value("Docker Basics"))
                 .andExpect(jsonPath("$.data.tags[0].slug").value("devops"))
@@ -146,16 +145,23 @@ class NoteImportControllerTest {
         assertThat(entity.getStatus()).isEqualTo("draft");
 
         mockMvc.perform(get("/api/v1/blog/posts")
-                        .header(HEADER_NAME, GUEST_TOKEN_VALUE)
                         .param("pageNo", "1")
                         .param("pageSize", "10"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.total").value(0));
 
-        mockMvc.perform(get("/api/v1/blog/posts/{postId}", entity.getId())
-                        .header(HEADER_NAME, GUEST_TOKEN_VALUE))
+        mockMvc.perform(get("/api/v1/blog/posts/{postId}", entity.getId()))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("post not found"));
+    }
+
+    @Test
+    void anonymous_import_write_should_be_rejected() throws Exception {
+        mockMvc.perform(post("/api/v1/blog/import/notes:batch")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsBytes(Map.of("notes", List.of()))))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"));
     }
 
     private MvcResult importNote(String noteId, String markdownContent, String contentHash, boolean publish) throws Exception {

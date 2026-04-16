@@ -35,7 +35,7 @@
 - 文章列表、详情、分页、搜索
 - 标签与分类查询
 - Markdown 渲染与缓存
-- 基于 `X-Ops-Key` 的写接口鉴权
+- 博客公开 GET 匿名可访问，写接口基于 `X-Ops-Key` 鉴权
 
 当前详情页展示内容包括：
 
@@ -694,8 +694,25 @@ POST /api/v1/blog/import/notes:batch
 
 ### 14.5 鉴权建议
 
-当前写接口基于 `X-Ops-Key`。  
-第一版可继续复用，但建议同步器单独使用发布专用 Key，而不是直接复用所有管理功能的主 Key。
+当前博客公开页改为匿名读取公开 GET 接口，包括：
+
+- `GET /api/v1/blog/posts`
+- `GET /api/v1/blog/posts/{id}`
+- `GET /api/v1/blog/search`
+- `GET /api/v1/blog/tags`
+- `GET /api/v1/blog/categories`
+- `GET /api/v1/blog/assets/images/{key}`
+
+以下写接口继续基于 `X-Ops-Key`：
+
+- `POST /api/v1/blog/import/notes:batch`
+- `POST /api/v1/blog/assets/images`
+- `POST /api/v1/blog/posts`
+- `PUT /api/v1/blog/posts/{id}`
+- `POST /api/v1/blog/tags`
+- `POST /api/v1/blog/categories`
+
+第一版继续复用现有主密钥即可；公开博客页不再依赖 `guest token` 或前端注入 `VITE_OPS_KEY`。
 
 建议后续演进：
 
@@ -913,6 +930,8 @@ POST /api/v1/blog/import/notes:batch
 说明：
 
 - V1 继续复用现有 `X-Ops-Key` 主密钥
+- 该主密钥仅用于导入、上传和其他写接口
+- 公开博客页读取文章、搜索、标签、分类与图片时不需要 `X-Ops-Key`
 - 暂不单独引入发布专用 Key
 
 ### 17.3 备份建议

@@ -7,10 +7,10 @@ Base path: `/api/v1/blog`
 - `GET /posts`
   - 描述：分页查询文章
   - 参数：`pageNo`、`pageSize`（兼容 `page`、`size`）
-  - 权限：Guest/Master
+  - 权限：公开读（匿名可访问）
 - `GET /posts/{id}`
   - 描述：文章详情（优先命中渲染缓存，返回 `markdownContent` 与 `renderedHtml`）
-  - 权限：Guest/Master
+  - 权限：公开读（匿名可访问）
 - `POST /posts`
   - 描述：创建文章（Markdown）
   - 权限：Master
@@ -21,9 +21,13 @@ Base path: `/api/v1/blog`
 ## 2. 标签与分类
 
 - `GET /tags`
+  - 权限：公开读（匿名可访问）
 - `POST /tags`
+  - 权限：Master
 - `GET /categories`
+  - 权限：公开读（匿名可访问）
 - `POST /categories`
+  - 权限：Master
 
 写接口仅 Master 可调用。
 
@@ -32,7 +36,7 @@ Base path: `/api/v1/blog`
 - `GET /search?q={keyword}`
   - 描述：站内全文搜索（生产默认走 MySQL Fulltext，测试环境走 H2 降级实现）
   - 参数：`q`、`pageNo`、`pageSize`
-  - 权限：Guest/Master
+  - 权限：公开读（匿名可访问）
 
 ## 4. 图片资源
 
@@ -57,6 +61,8 @@ Base path: `/api/v1/blog`
 ## 6. 公开查询规则
 
 - 公开列表、详情、搜索仅返回 `status=published` 的文章
+- 公开 GET 接口匿名可访问：`/posts`、`/posts/{id}`、`/search`、`/tags`、`/categories`、`/assets/images/{key}`
+- 写接口继续要求 `X-Ops-Key`
 - 手工创建文章默认 `published`
 - 导入文章内部 `slug` 固定生成为 `obsidian-<noteId>`，前台仍使用 ID 路由访问详情
 

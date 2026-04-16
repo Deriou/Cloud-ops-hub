@@ -8,7 +8,8 @@
 - Obsidian 是唯一内容源，网页端不编辑正文
 - 图片通过 `![[图片名.png]]` 自动上传并替换为服务器地址
 - `[[双链]]` 暂不转换，上传后会作为普通文本显示
-- 导入接口使用现有主密钥 `X-Ops-Key`
+- 博客公开 GET 接口匿名可访问，前端读博客不再依赖 `VITE_OPS_KEY`
+- 导入和图片上传等写接口继续使用现有主密钥 `X-Ops-Key`
 
 ---
 
@@ -210,6 +211,10 @@ cd ~/projects/Cloud-ops-hub
 - 先验证前端可以正常打包
 - `cd` 回项目根目录，为后续 Docker 构建做准备
 
+说明：
+- 生产环境博客页默认走同源 `/api/v1/blog/**`，不需要额外注入 `VITE_OPS_KEY`
+- 只有在博客 API 被刻意部署到独立域名时，才需要设置 `VITE_BLOG_API_BASE_URL`
+
 ### 3.9 设置镜像仓库和发布 tag
 
 ```bash
@@ -396,8 +401,7 @@ node scripts/obsidian-publish.mjs \
 ### 5.1 检查文章列表接口
 
 ```bash
-curl -H 'X-Ops-Key: 你的OPS主密钥' \
-  'https://deriou.com/api/v1/blog/posts?pageNo=1&pageSize=5'
+curl 'https://deriou.com/api/v1/blog/posts?pageNo=1&pageSize=5'
 ```
 
 作用：
@@ -407,8 +411,7 @@ curl -H 'X-Ops-Key: 你的OPS主密钥' \
 ### 5.2 检查文章详情接口
 
 ```bash
-curl -H 'X-Ops-Key: 你的OPS主密钥' \
-  'https://deriou.com/api/v1/blog/posts/1'
+curl 'https://deriou.com/api/v1/blog/posts/1'
 ```
 
 作用：
@@ -430,7 +433,19 @@ curl -I 'https://deriou.com/api/v1/blog/assets/images/替换成真实图片key'
 - 验证图片资源接口可公开访问
 - 预期应返回 `200 OK`
 
-### 5.4 浏览器人工验收
+### 5.4 检查匿名写接口仍被保护
+
+```bash
+curl -X POST 'https://deriou.com/api/v1/blog/import/notes:batch' \
+  -H 'Content-Type: application/json' \
+  -d '{"notes":[]}'
+```
+
+作用：
+- 验证导入接口在不带 `X-Ops-Key` 时仍返回鉴权失败
+- 预期应返回 `401 Unauthorized`
+
+### 5.5 浏览器人工验收
 
 手工打开以下页面：
 

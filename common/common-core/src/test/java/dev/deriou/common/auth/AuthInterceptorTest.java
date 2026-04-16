@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import dev.deriou.common.api.ApiResponse;
 import dev.deriou.common.config.AuthConfig;
 import dev.deriou.common.config.WebMvcConfig;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -93,6 +94,44 @@ class AuthInterceptorTest {
     }
 
     @Test
+    void missing_key_should_allow_public_blog_get_endpoints_as_guest() throws Exception {
+        mockMvc.perform(get("/api/v1/blog/posts"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.accessMode").value(AuthInterceptor.GUEST_MODE));
+
+        mockMvc.perform(get("/api/v1/blog/posts/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.accessMode").value(AuthInterceptor.GUEST_MODE));
+
+        mockMvc.perform(get("/api/v1/blog/search"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.accessMode").value(AuthInterceptor.GUEST_MODE));
+
+        mockMvc.perform(get("/api/v1/blog/tags"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.accessMode").value(AuthInterceptor.GUEST_MODE));
+
+        mockMvc.perform(get("/api/v1/blog/categories"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.accessMode").value(AuthInterceptor.GUEST_MODE));
+
+        mockMvc.perform(get("/api/v1/blog/assets/images/test-key"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.accessMode").value(AuthInterceptor.GUEST_MODE));
+    }
+
+    @Test
+    void missing_key_should_still_block_blog_write_endpoints() throws Exception {
+        mockMvc.perform(post("/api/v1/blog/import/notes:batch"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"));
+
+        mockMvc.perform(post("/api/v1/blog/assets/images"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"));
+    }
+
+    @Test
     void expired_guest_key_should_return_401() throws Exception {
         Thread.sleep(1200L);
 
@@ -104,7 +143,7 @@ class AuthInterceptorTest {
 
     @SpringBootConfiguration
     @EnableAutoConfiguration
-    @Import({AuthConfig.class, WebMvcConfig.class, TestController.class})
+    @Import({AuthConfig.class, WebMvcConfig.class, TestController.class, BlogPublicController.class})
     static class TestApplication {
     }
 
@@ -130,6 +169,55 @@ class AuthInterceptorTest {
         @DeleteMapping("/resource")
         ApiResponse<Map<String, String>> deleteResource() {
             return ApiResponse.success(Map.of("method", "DELETE"));
+        }
+    }
+
+    @RestController
+    static class BlogPublicController {
+
+        @GetMapping("/api/v1/blog/posts")
+        ApiResponse<Map<String, String>> listPosts(HttpServletRequest request) {
+            return publicReadResponse(request);
+        }
+
+        @GetMapping("/api/v1/blog/posts/{postId}")
+        ApiResponse<Map<String, String>> getPost(HttpServletRequest request) {
+            return publicReadResponse(request);
+        }
+
+        @GetMapping("/api/v1/blog/search")
+        ApiResponse<Map<String, String>> search(HttpServletRequest request) {
+            return publicReadResponse(request);
+        }
+
+        @GetMapping("/api/v1/blog/tags")
+        ApiResponse<Map<String, String>> tags(HttpServletRequest request) {
+            return publicReadResponse(request);
+        }
+
+        @GetMapping("/api/v1/blog/categories")
+        ApiResponse<Map<String, String>> categories(HttpServletRequest request) {
+            return publicReadResponse(request);
+        }
+
+        @GetMapping("/api/v1/blog/assets/images/{key}")
+        ApiResponse<Map<String, String>> image(HttpServletRequest request) {
+            return publicReadResponse(request);
+        }
+
+        @PostMapping("/api/v1/blog/import/notes:batch")
+        ApiResponse<Map<String, String>> importNotes() {
+            return ApiResponse.success(Map.of("method", "POST"));
+        }
+
+        @PostMapping("/api/v1/blog/assets/images")
+        ApiResponse<Map<String, String>> uploadImage() {
+            return ApiResponse.success(Map.of("method", "POST"));
+        }
+
+        private ApiResponse<Map<String, String>> publicReadResponse(HttpServletRequest request) {
+            Object accessMode = request.getAttribute(AuthInterceptor.ACCESS_MODE_ATTRIBUTE);
+            return ApiResponse.success(Map.of("accessMode", String.valueOf(accessMode)));
         }
     }
 }

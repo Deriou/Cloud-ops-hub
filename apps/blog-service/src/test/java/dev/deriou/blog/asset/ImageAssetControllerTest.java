@@ -94,6 +94,16 @@ class ImageAssetControllerTest {
         assertThat(keyA).isEqualTo(keyB);
     }
 
+    @Test
+    void image_upload_should_require_master_key() throws Exception {
+        MockMultipartFile file = new MockMultipartFile("file", "tiny.png", "image/png", PNG_BYTES);
+
+        mockMvc.perform(multipart("/api/v1/blog/assets/images")
+                        .file(file))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"));
+    }
+
     private String uploadAndGetKey(MockMultipartFile file) throws Exception {
         MvcResult result = mockMvc.perform(multipart("/api/v1/blog/assets/images")
                         .file(file)
