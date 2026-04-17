@@ -40,7 +40,9 @@ function splitFrontmatter(rawContent) {
 
 function parseFrontmatterBlock(block) {
   const frontmatter = {};
-  for (const rawLine of block.split(/\r?\n/)) {
+  const lines = block.split(/\r?\n/);
+  for (let index = 0; index < lines.length; index += 1) {
+    const rawLine = lines[index];
     const line = rawLine.trim();
     if (!line || line.startsWith("#")) {
       continue;
@@ -53,6 +55,36 @@ function parseFrontmatterBlock(block) {
 
     const key = line.slice(0, separator).trim();
     const value = line.slice(separator + 1).trim();
+    if (!value) {
+      const items = [];
+      let cursor = index + 1;
+      while (cursor < lines.length) {
+        const candidate = lines[cursor];
+        const trimmed = candidate.trim();
+
+        if (!trimmed || trimmed.startsWith("#")) {
+          cursor += 1;
+          continue;
+        }
+
+        if (!candidate.match(/^\s+/) || !trimmed.startsWith("-")) {
+          break;
+        }
+
+        const itemValue = trimmed.slice(1).trim();
+        if (itemValue) {
+          items.push(stripQuotes(itemValue));
+        }
+        cursor += 1;
+      }
+
+      if (items.length > 0) {
+        frontmatter[key] = items;
+        index = cursor - 1;
+        continue;
+      }
+    }
+
     frontmatter[key] = parseFrontmatterValue(value);
   }
   return frontmatter;

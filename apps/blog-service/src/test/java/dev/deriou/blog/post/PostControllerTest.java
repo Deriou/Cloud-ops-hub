@@ -10,6 +10,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.deriou.common.auth.AuthInterceptor;
 import dev.deriou.common.auth.GuestTokenStore;
+import dev.deriou.blog.domain.entity.PostEntity;
+import dev.deriou.blog.domain.entity.PostStatus;
+import dev.deriou.blog.domain.entity.PostTagEntity;
+import dev.deriou.blog.mapper.PostMapper;
+import dev.deriou.blog.mapper.PostTagMapper;
+import java.time.LocalDateTime;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,6 +45,12 @@ class PostControllerTest {
 
     @Autowired
     private GuestTokenStore guestTokenStore;
+
+    @Autowired
+    private PostMapper postMapper;
+
+    @Autowired
+    private PostTagMapper postTagMapper;
 
     @BeforeEach
     void setUp() {
@@ -163,6 +175,22 @@ class PostControllerTest {
                 .andExpect(jsonPath("$.code").value("UNAUTHORIZED"));
     }
 
+    @Test
+    void tags_endpoint_should_only_return_tags_used_by_published_posts() throws Exception {
+        long publishedTagId = createTaxonomy("/api/v1/blog/tags", "Java", "java");
+        long draftOnlyTagId = createTaxonomy("/api/v1/blog/tags", "Draft Only", "draft-only");
+        createTaxonomy("/api/v1/blog/tags", "Unused", "unused");
+
+        createPost("Published Post", "published-post", "# Published", new long[] {publishedTagId});
+        createDraftPost("draft-note", "Draft Post", "draft-post", draftOnlyTagId);
+
+        mockMvc.perform(get("/api/v1/blog/tags"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("OK"))
+                .andExpect(jsonPath("$.data.length()").value(1))
+                .andExpect(jsonPath("$.data[0].slug").value("java"));
+    }
+
     private long createTaxonomy(String path, String name, String slug) throws Exception {
         MvcResult result = mockMvc.perform(post(path)
                         .header(HEADER_NAME, MASTER_KEY)
@@ -177,6 +205,10 @@ class PostControllerTest {
     }
 
     private long createPost(String title, String slug, String markdownContent) throws Exception {
+        return createPost(title, slug, markdownContent, new long[] {});
+    }
+
+    private long createPost(String title, String slug, String markdownContent, long[] tagIds) throws Exception {
         MvcResult result = mockMvc.perform(post("/api/v1/blog/posts")
                         .header(HEADER_NAME, MASTER_KEY)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -185,7 +217,7 @@ class PostControllerTest {
                                 "slug", slug,
                                 "markdownContent", markdownContent,
                                 "summary", "summary",
-                                "tagIds", new long[] {},
+                                "tagIds", tagIds,
                                 "categoryIds", new long[] {}
                         ))))
                 .andExpect(status().isOk())
@@ -193,5 +225,26 @@ class PostControllerTest {
 
         JsonNode data = objectMapper.readTree(result.getResponse().getContentAsByteArray()).path("data");
         return data.path("id").asLong();
+    }
+
+    private void createDraftPost(String noteId, String title, String slug, long tagId) {
+        LocalDateTime now = LocalDateTime.now();
+
+        PostEntity post = new PostEntity();
+        post.setNoteId(noteId);
+        post.setStatus(PostStatus.DRAFT);
+        post.setTitle(title);
+        post.setSlug(slug);
+        post.setMarkdownContent("# Draft");
+        post.setSummary("draft summary");
+        post.setCreateTime(now);
+        post.setUpdateTime(now);
+        post.setLastSyncTime(now);
+        postMapper.insert(post);
+
+        PostTagEntity relation = new PostTagEntity();
+        relation.setPostId(post.getId());
+        relation.setTagId(tagId);
+        postTagMapper.insert(relation);
     }
 }

@@ -42,9 +42,7 @@ public class TagService {
     }
 
     public List<TaxonomyResponse> listTags() {
-        return tagMapper.selectList(new LambdaQueryWrapper<TagEntity>()
-                        .orderByAsc(TagEntity::getName, TagEntity::getId))
-                .stream()
+        return tagMapper.selectPublishedTagsInUse().stream()
                 .map(TaxonomyConverter::toResponse)
                 .toList();
     }
