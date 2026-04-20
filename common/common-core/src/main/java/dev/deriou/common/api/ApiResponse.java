@@ -1,7 +1,7 @@
 package dev.deriou.common.api;
 
+import dev.deriou.common.observability.TraceContext;
 import java.util.Objects;
-import java.util.UUID;
 
 public final class ApiResponse<T> {
     private final String code;
@@ -13,7 +13,8 @@ public final class ApiResponse<T> {
         this.code = Objects.requireNonNull(resultCode, "resultCode must not be null").getCode();
         this.message = resolveMessage(resultCode, message);
         this.data = data;
-        this.traceId = UUID.randomUUID().toString().replace("-", "");
+        this.traceId = TraceContext.currentTraceId().orElseGet(TraceContext::generateTraceId);
+        TraceContext.recordResultCode(this.code);
     }
 
     public static <T> ApiResponse<T> success(T data) {

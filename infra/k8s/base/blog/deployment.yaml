@@ -23,7 +23,7 @@ spec:
             claimName: blog-assets-pvc
       containers:
         - name: blog-service
-          image: crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com/cloud-ops-hub/blog-service:0.0.1
+          image: crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com/cloud-ops-hub/blog-service:0.0.4-obsidian-v1
           ports:
             - containerPort: 8080
               name: http
