@@ -232,7 +232,14 @@ infra/helm/prometheus/values-dev.yaml
 - `pushgateway.enabled=false`：本阶段不采集短任务指标。
 - `kube-state-metrics.enabled=false`：本阶段先不采集 K8s 对象状态。
 - `node-exporter.enabled=false`：本阶段先不采集节点指标。
-- `scrape_configs`：显式配置 Prometheus 要抓取哪些目标。
+- `scrape_configs`：只显式配置当前项目业务服务抓取目标。
+
+注意：
+
+- 不要在 `values-dev.yaml` 里额外添加 `job_name: prometheus`。
+- `prometheus-community/prometheus` chart 默认会处理 Prometheus 自身抓取。
+- 如果自定义配置里再加一个同名 `job_name: prometheus`，Prometheus 会因为重复 job name 启动失败。
+- 典型报错是：`found multiple scrape configs with job name "prometheus"`。
 
 在 ECS 上部署前，确认文件存在：
 
@@ -570,7 +577,31 @@ docker push $REGISTRY/prometheus-config-reloader:v0.90.1-amd64
 exec format error
 ```
 
-### 12.3 Target DOWN
+### 12.3 Prometheus 主容器 CrashLoopBackOff
+
+如果主容器日志出现：
+
+```text
+found multiple scrape configs with job name "prometheus"
+```
+
+说明 Prometheus 配置里出现了重复的 `job_name`。
+
+处理：
+
+- 检查 `infra/helm/prometheus/values-dev.yaml`。
+- 不要手动添加 `job_name: prometheus`。
+- 本项目 values 文件只保留 `cloud-ops-gateway-portal` 和 `cloud-ops-blog-service` 两个业务抓取 job。
+
+修复后重新升级：
+
+```bash
+helm upgrade --install prometheus prometheus-community/prometheus \
+  -n monitoring \
+  -f infra/helm/prometheus/values-dev.yaml
+```
+
+### 12.4 Target DOWN
 
 先在集群内验证：
 
@@ -588,7 +619,7 @@ kubectl -n monitoring run curl-check --rm -it --image=curlimages/curl --restart=
 
 如果这里访问不通，说明是集群网络、Service、应用启动或 endpoint 问题，不是 Prometheus 本身问题。
 
-### 12.4 查询不到 `application` 标签
+### 12.5 查询不到 `application` 标签
 
 检查应用配置是否包含：
 

@@ -34,11 +34,6 @@ prometheus-node-exporter:
 serverFiles:
   prometheus.yml:
     scrape_configs:
-      - job_name: "prometheus"
-        static_configs:
-          - targets:
-              - "localhost:9090"
-
       - job_name: "cloud-ops-gateway-portal"
         metrics_path: "/actuator/prometheus"
         scrape_interval: 30s
