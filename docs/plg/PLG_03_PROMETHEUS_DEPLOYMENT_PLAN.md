@@ -211,70 +211,14 @@ NAME                            CHART VERSION   APP VERSION
 prometheus-community/prometheus ...
 ```
 
-## 6. 生成学习版 values 文件
+## 6. 准备 Prometheus values 文件
 
-建议把 Prometheus 的自定义配置保存到文档外的临时文件中，例如：
+Prometheus 使用 Helm chart 部署，但 chart 是通用安装包，不知道当前项目要抓取哪些服务。
 
-```bash
-mkdir -p /tmp/cloud-ops-hub-plg
-```
+本项目已经把学习环境的 Prometheus 配置固化到仓库：
 
-命令用途：
-
-- 创建一个临时目录保存 Helm values 文件。
-- 放在 `/tmp` 是为了避免一开始把实验配置直接混入项目代码。
-
-创建 values 文件：
-
-```bash
-cat > /tmp/cloud-ops-hub-plg/prometheus-values.yaml <<'EOF'
-server:
-  persistentVolume:
-    enabled: false
-  retention: "3d"
-  service:
-    type: ClusterIP
-
-alertmanager:
-  enabled: false
-
-prometheus-pushgateway:
-  enabled: false
-
-kube-state-metrics:
-  enabled: false
-
-prometheus-node-exporter:
-  enabled: false
-
-serverFiles:
-  prometheus.yml:
-    scrape_configs:
-      - job_name: "prometheus"
-        static_configs:
-          - targets:
-              - "localhost:9090"
-
-      - job_name: "cloud-ops-gateway-portal"
-        metrics_path: "/actuator/prometheus"
-        scrape_interval: 30s
-        static_configs:
-          - targets:
-              - "gateway-portal.cloud-ops.svc.cluster.local:8080"
-            labels:
-              namespace: "cloud-ops"
-              service: "gateway-portal"
-
-      - job_name: "cloud-ops-blog-service"
-        metrics_path: "/actuator/prometheus"
-        scrape_interval: 30s
-        static_configs:
-          - targets:
-              - "blog-service.cloud-ops.svc.cluster.local:8080"
-            labels:
-              namespace: "cloud-ops"
-              service: "blog-service"
-EOF
+```text
+infra/helm/prometheus/values-dev.yaml
 ```
 
 配置说明：
@@ -287,14 +231,23 @@ EOF
 - `node-exporter.enabled=false`：本阶段先不采集节点指标。
 - `scrape_configs`：显式配置 Prometheus 要抓取哪些目标。
 
-> 注意：如果后续你想把这个 values 文件纳入项目管理，可以再单独放到 `infra/helm/prometheus/values-dev.yaml`。本阶段先用 `/tmp`，更适合手动学习。
+在 ECS 上部署前，确认文件存在：
+
+```bash
+ls -l infra/helm/prometheus/values-dev.yaml
+```
+
+命令用途：
+
+- 确认你已经在 ECS 上 `git pull` 到最新仓库内容。
+- 确认 Helm 安装时可以读取到 values 文件。
 
 ## 7. 安装 Prometheus
 
 ```bash
 helm upgrade --install prometheus prometheus-community/prometheus \
   -n monitoring \
-  -f /tmp/cloud-ops-hub-plg/prometheus-values.yaml
+  -f infra/helm/prometheus/values-dev.yaml
 ```
 
 命令用途：
