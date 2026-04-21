@@ -535,6 +535,7 @@ ImagePullBackOff
 学习阶段处理思路：
 
 - 本项目默认在 `infra/helm/prometheus/values-dev.yaml` 中使用阿里云 ACR 镜像。
+- ECS 节点通常是 `linux/amd64`，同步镜像时必须显式拉取 `linux/amd64` 版本。
 - 先确认镜像已推送到 ACR。
 - 再确认 `monitoring` namespace 下存在 `acr-secret`。
 
@@ -553,14 +554,20 @@ export REGISTRY=$ACR_HOST/cloud-ops-hub
 
 docker login $ACR_HOST
 
-docker pull quay.io/prometheus/prometheus:v3.11.2
-docker pull quay.io/prometheus-operator/prometheus-config-reloader:v0.90.1
+docker pull --platform linux/amd64 quay.io/prometheus/prometheus:v3.11.2
+docker pull --platform linux/amd64 quay.io/prometheus-operator/prometheus-config-reloader:v0.90.1
 
-docker tag quay.io/prometheus/prometheus:v3.11.2 $REGISTRY/prometheus:v3.11.2
-docker tag quay.io/prometheus-operator/prometheus-config-reloader:v0.90.1 $REGISTRY/prometheus-config-reloader:v0.90.1
+docker tag quay.io/prometheus/prometheus:v3.11.2 $REGISTRY/prometheus:v3.11.2-amd64
+docker tag quay.io/prometheus-operator/prometheus-config-reloader:v0.90.1 $REGISTRY/prometheus-config-reloader:v0.90.1-amd64
 
-docker push $REGISTRY/prometheus:v3.11.2
-docker push $REGISTRY/prometheus-config-reloader:v0.90.1
+docker push $REGISTRY/prometheus:v3.11.2-amd64
+docker push $REGISTRY/prometheus-config-reloader:v0.90.1-amd64
+```
+
+如果没有指定 `--platform linux/amd64`，可能会把 ARM 机器上的镜像推到 ACR，ECS 启动时会报：
+
+```text
+exec format error
 ```
 
 ### 12.3 Target DOWN

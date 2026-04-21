@@ -4,7 +4,7 @@ imagePullSecrets:
 server:
   image:
     repository: crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com/cloud-ops-hub/prometheus
-    tag: v3.11.2
+    tag: v3.11.2-amd64
     pullPolicy: IfNotPresent
   persistentVolume:
     enabled: false
@@ -16,7 +16,7 @@ configmapReload:
   prometheus:
     image:
       repository: crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com/cloud-ops-hub/prometheus-config-reloader
-      tag: v0.90.1
+      tag: v0.90.1-amd64
       pullPolicy: IfNotPresent
 
 alertmanager:
