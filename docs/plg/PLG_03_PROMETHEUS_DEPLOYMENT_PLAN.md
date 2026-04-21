@@ -223,6 +223,9 @@ infra/helm/prometheus/values-dev.yaml
 
 配置说明：
 
+- `imagePullSecrets`：让 Prometheus Pod 可以从阿里云 ACR 私有镜像仓库拉取镜像。
+- `server.image.repository`：Prometheus 主容器镜像，当前使用阿里云 ACR 镜像，避免 ECS 直接拉 `quay.io/prometheus/prometheus`。
+- `configmapReload.prometheus.image.repository`：配置热加载 sidecar 镜像，当前使用阿里云 ACR 镜像，避免 ECS 直接拉 `quay.io/prometheus-operator/prometheus-config-reloader`。
 - `server.persistentVolume.enabled=false`：学习阶段先不持久化 Prometheus 数据，删除 Pod 后指标历史会丢失，但部署最简单。
 - `retention: "3d"`：指标保留 3 天，避免学习环境占用太多磁盘。
 - `alertmanager.enabled=false`：本阶段不做告警。
@@ -241,6 +244,49 @@ ls -l infra/helm/prometheus/values-dev.yaml
 
 - 确认你已经在 ECS 上 `git pull` 到最新仓库内容。
 - 确认 Helm 安装时可以读取到 values 文件。
+
+如果 ACR 镜像仓库是私有仓库，需要在 `monitoring` namespace 创建镜像拉取 Secret。
+
+方式一：如果 `cloud-ops` namespace 已经有 `acr-secret`，可以复制一份到 `monitoring`：
+
+```bash
+kubectl -n cloud-ops get secret acr-secret -o jsonpath='{.data.\.dockerconfigjson}' \
+  | base64 -d > /tmp/acr-dockerconfigjson
+
+kubectl -n monitoring create secret generic acr-secret \
+  --from-file=.dockerconfigjson=/tmp/acr-dockerconfigjson \
+  --type=kubernetes.io/dockerconfigjson \
+  --dry-run=client -o yaml \
+  | kubectl apply -f -
+
+rm -f /tmp/acr-dockerconfigjson
+```
+
+命令用途：
+
+- 读取业务 namespace 里已有的 ACR 拉取密钥。
+- 在 `monitoring` namespace 重新生成同名 Secret。
+- 使用 `--dry-run=client -o yaml | kubectl apply -f -`，避免重复创建时报错。
+
+方式二：重新创建 ACR 拉取 Secret：
+
+```bash
+kubectl -n monitoring create secret docker-registry acr-secret \
+  --docker-server=crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com \
+  --docker-username=<你的ACR用户名> \
+  --docker-password=<你的ACR密码>
+```
+
+命令用途：
+
+- 在 `monitoring` namespace 创建 `acr-secret`。
+- Prometheus Pod 会通过 `values-dev.yaml` 中的 `imagePullSecrets` 使用它拉取 ACR 镜像。
+
+检查 Secret 是否存在：
+
+```bash
+kubectl -n monitoring get secret acr-secret
+```
 
 ## 7. 安装 Prometheus
 
@@ -484,11 +530,38 @@ ImagePullBackOff
 
 - 服务器访问海外镜像仓库不稳定。
 - 镜像源被网络限制。
+- `monitoring` namespace 缺少 `acr-secret`，导致私有 ACR 镜像无法拉取。
 
 学习阶段处理思路：
 
-- 先多等一会儿或重试。
-- 如果长期失败，再考虑配置镜像代理或替换 chart values 中的镜像仓库。
+- 本项目默认在 `infra/helm/prometheus/values-dev.yaml` 中使用阿里云 ACR 镜像。
+- 先确认镜像已推送到 ACR。
+- 再确认 `monitoring` namespace 下存在 `acr-secret`。
+
+需要提前同步到 ACR 的镜像：
+
+```text
+quay.io/prometheus/prometheus:v3.11.2
+quay.io/prometheus-operator/prometheus-config-reloader:v0.90.1
+```
+
+同步示例：
+
+```bash
+export ACR_HOST=crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com
+export REGISTRY=$ACR_HOST/cloud-ops-hub
+
+docker login $ACR_HOST
+
+docker pull quay.io/prometheus/prometheus:v3.11.2
+docker pull quay.io/prometheus-operator/prometheus-config-reloader:v0.90.1
+
+docker tag quay.io/prometheus/prometheus:v3.11.2 $REGISTRY/prometheus:v3.11.2
+docker tag quay.io/prometheus-operator/prometheus-config-reloader:v0.90.1 $REGISTRY/prometheus-config-reloader:v0.90.1
+
+docker push $REGISTRY/prometheus:v3.11.2
+docker push $REGISTRY/prometheus-config-reloader:v0.90.1
+```
 
 ### 12.3 Target DOWN
 

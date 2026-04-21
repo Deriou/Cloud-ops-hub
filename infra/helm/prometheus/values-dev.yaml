@@ -1,9 +1,23 @@
+imagePullSecrets:
+  - name: acr-secret
+
 server:
+  image:
+    repository: crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com/cloud-ops-hub/prometheus
+    tag: v3.11.2
+    pullPolicy: IfNotPresent
   persistentVolume:
     enabled: false
   retention: "3d"
   service:
     type: ClusterIP
+
+configmapReload:
+  prometheus:
+    image:
+      repository: crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com/cloud-ops-hub/prometheus-config-reloader
+      tag: v0.90.1
+      pullPolicy: IfNotPresent
 
 alertmanager:
   enabled: false
