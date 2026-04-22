@@ -50,6 +50,8 @@ gateway:
     repository: cloud-ops-hub/nginx-unprivileged
     tag: 1.29-alpine-amd64
     pullPolicy: IfNotPresent
+  metrics:
+    enabled: false
 
 ruler:
   enabled: false

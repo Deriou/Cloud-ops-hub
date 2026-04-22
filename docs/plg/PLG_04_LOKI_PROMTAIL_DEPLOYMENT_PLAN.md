@@ -20,7 +20,9 @@ Spring Boot stdout 日志 -> Promtail -> Loki -> LogQL 查询
 
 - Loki Pod 正常运行
 - Promtail DaemonSet 正常运行
+- `loki-gateway` Service 可被集群内访问
 - Loki 能收到 `cloud-ops` namespace 的容器日志
+- 日志保留时间控制在 `3~7` 天，本阶段配置为 `168h`
 - 能通过 `traceId` 找到一次业务请求的日志
 - 能区分 `gateway-portal` 与 `blog-service` 日志
 
@@ -81,6 +83,27 @@ linux/amd64
 ```
 
 因此 Loki、Promtail 以及 Loki chart 可能用到的 gateway 镜像，都必须同步 `linux/amd64` 版本到 ACR，并使用 `-amd64` tag。
+
+当前最小部署只保留 3 个镜像：
+
+```text
+grafana/loki:3.7.1
+nginxinc/nginx-unprivileged:1.29-alpine
+grafana/promtail:3.5.1
+```
+
+当前阶段明确关闭这些非核心组件，避免额外公网镜像：
+
+```text
+lokiCanary
+gateway metrics exporter / access-log-exporter
+ruler
+rules sidecar / k8s-sidecar
+chunks/results cache
+test job
+```
+
+如果 `helm template` 仍渲染出新的公网镜像，先不要部署。处理原则是：能明确关掉的先关掉；确实需要的再同步到 ACR。
 
 如果镜像架构错误，Pod 通常会报：
 
@@ -404,6 +427,8 @@ gateway:
     repository: cloud-ops-hub/nginx-unprivileged
     tag: 1.29-alpine-amd64
     pullPolicy: IfNotPresent
+  metrics:
+    enabled: false
 
 ruler:
   enabled: false
@@ -475,6 +500,7 @@ bloomGateway:
 - 当前配置使用 Loki `3.7.1`，与当前 `grafana-community/loki` chart app version 对齐。
 - 当前 gateway 使用 `nginxinc/nginx-unprivileged:1.29-alpine` 对应的 ACR `1.29-alpine-amd64` tag。
 - `gateway.verboseLogging=false`：关闭 gateway access log exporter，避免额外拉取 `ghcr.io/jkroepke/access-log-exporter`。
+- `gateway.metrics.enabled=false`：关闭 gateway metrics exporter。`access-log-exporter` 实际由这个开关控制，当前阶段不需要观察 Loki gateway 自身指标。
 - `ruler.enabled=false` 与 `sidecar.rules.enabled=false`：本阶段不做 Loki ruler，避免额外拉取 `kiwigrid/k8s-sidecar`。
 - 如果部署前 `helm search repo` 或 `helm show chart` 显示版本已经变化，需要同步调整镜像 tag。
 - 如果 `helm template` 报 `deploymentMode` 只支持 `Monolithic`，说明你使用的 chart 版本已经改名，需要根据 `helm show values grafana-community/loki` 的输出调整，不要硬套旧字段。
@@ -589,20 +615,34 @@ docker.io/grafana/loki:3.7.1
 docker.io/nginxinc/nginx-unprivileged:1.29-alpine
 ```
 
+实际仓库 values 已经把它们改写为 ACR：
+
+```text
+crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com/cloud-ops-hub/loki:3.7.1-amd64
+crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com/cloud-ops-hub/nginx-unprivileged:1.29-alpine-amd64
+```
+
 如果你没有关闭 `lokiCanary`，还会出现：
 
 ```text
 docker.io/grafana/loki-canary:3.7.1
 ```
 
-当前 `values-dev.yaml` 已关闭 `lokiCanary`、`ruler`、rules sidecar 和 gateway access log exporter。预渲染结果里不应该再出现：
+当前 `values-dev.yaml` 已关闭 `lokiCanary`、`ruler`、rules sidecar 和 gateway metrics exporter。预渲染结果里不应该再出现：
 
 ```text
 ghcr.io/jkroepke/access-log-exporter
 docker.io/kiwigrid/k8s-sidecar
 ```
 
-如果仍然出现，先不要部署，优先检查 `gateway.verboseLogging`、`ruler.enabled` 和 `sidecar.rules.enabled`。
+如果仍然出现，先不要部署，优先检查 `gateway.metrics.enabled`、`gateway.verboseLogging`、`ruler.enabled` 和 `sidecar.rules.enabled`。
+
+本阶段 Loki 预渲染的理想镜像结果是只出现 ACR 镜像：
+
+```text
+cloud-ops-hub/nginx-unprivileged:1.29-alpine-amd64
+cloud-ops-hub/loki:3.7.1-amd64
+```
 
 ### 7.4 查看 Promtail 默认 values
 
@@ -651,7 +691,29 @@ rg "image:" /tmp/promtail-rendered.yaml
 docker.io/grafana/promtail:3.5.1
 ```
 
+实际仓库 values 已经把它改写为 ACR：
+
+```text
+crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com/cloud-ops-hub/promtail:3.5.1-amd64
+```
+
 ## 8. 同步镜像到 ACR
+
+本阶段镜像处理采用最务实原则：
+
+```text
+以 helm template 实际渲染出来的 image 为准
+所有保留组件的镜像必须指向 ACR
+不需要的附加组件优先关闭
+```
+
+当前 values 目标是最终只需要同步 3 个镜像：
+
+```text
+grafana/loki:3.7.1
+nginxinc/nginx-unprivileged:1.29-alpine
+grafana/promtail:3.5.1
+```
 
 ### 8.1 设置变量
 
