@@ -362,7 +362,7 @@ loki:
   image:
     registry: crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com
     repository: cloud-ops-hub/loki
-    tag: 3.7.0-amd64
+    tag: 3.7.1-amd64
     pullPolicy: IfNotPresent
   commonConfig:
     path_prefix: /var/loki
@@ -398,11 +398,19 @@ singleBinary:
 
 gateway:
   enabled: true
+  verboseLogging: false
   image:
     registry: crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com
     repository: cloud-ops-hub/nginx-unprivileged
     tag: 1.29-alpine-amd64
     pullPolicy: IfNotPresent
+
+ruler:
+  enabled: false
+
+sidecar:
+  rules:
+    enabled: false
 
 minio:
   enabled: false
@@ -464,8 +472,10 @@ bloomGateway:
 
 注意：
 
-- 当前配置使用 Loki `3.7.0`。该 tag 是 Grafana 官方 Loki Docker 文档示例使用的 3.7 系列镜像，更适合当前学习环境直接拉取。
+- 当前配置使用 Loki `3.7.1`，与当前 `grafana-community/loki` chart app version 对齐。
 - 当前 gateway 使用 `nginxinc/nginx-unprivileged:1.29-alpine` 对应的 ACR `1.29-alpine-amd64` tag。
+- `gateway.verboseLogging=false`：关闭 gateway access log exporter，避免额外拉取 `ghcr.io/jkroepke/access-log-exporter`。
+- `ruler.enabled=false` 与 `sidecar.rules.enabled=false`：本阶段不做 Loki ruler，避免额外拉取 `kiwigrid/k8s-sidecar`。
 - 如果部署前 `helm search repo` 或 `helm show chart` 显示版本已经变化，需要同步调整镜像 tag。
 - 如果 `helm template` 报 `deploymentMode` 只支持 `Monolithic`，说明你使用的 chart 版本已经改名，需要根据 `helm show values grafana-community/loki` 的输出调整，不要硬套旧字段。
 
@@ -575,15 +585,24 @@ rg "image:" /tmp/loki-rendered.yaml
 第一版常见镜像：
 
 ```text
-docker.io/grafana/loki:3.7.0
+docker.io/grafana/loki:3.7.1
 docker.io/nginxinc/nginx-unprivileged:1.29-alpine
 ```
 
 如果你没有关闭 `lokiCanary`，还会出现：
 
 ```text
-docker.io/grafana/loki-canary:3.7.0
+docker.io/grafana/loki-canary:3.7.1
 ```
+
+当前 `values-dev.yaml` 已关闭 `lokiCanary`、`ruler`、rules sidecar 和 gateway access log exporter。预渲染结果里不应该再出现：
+
+```text
+ghcr.io/jkroepke/access-log-exporter
+docker.io/kiwigrid/k8s-sidecar
+```
+
+如果仍然出现，先不要部署，优先检查 `gateway.verboseLogging`、`ruler.enabled` 和 `sidecar.rules.enabled`。
 
 ### 7.4 查看 Promtail 默认 values
 
@@ -659,7 +678,7 @@ docker login $ACR_HOST
 ### 8.2 同步 Loki 主镜像
 
 ```bash
-export LOKI_VERSION=3.7.0
+export LOKI_VERSION=3.7.1
 
 docker pull --platform linux/amd64 grafana/loki:$LOKI_VERSION
 docker tag grafana/loki:$LOKI_VERSION $REGISTRY/loki:$LOKI_VERSION-amd64
@@ -711,7 +730,7 @@ docker push $REGISTRY/promtail:$PROMTAIL_VERSION-amd64
 镜像推送完成后，确认 values 文件中的 tag 与刚推送的 ACR tag 一致：
 
 ```text
-loki: 3.7.0-amd64
+loki: 3.7.1-amd64
 nginx-unprivileged: 1.29-alpine-amd64
 promtail: 3.5.1-amd64
 ```

@@ -8,7 +8,7 @@ loki:
   image:
     registry: crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com
     repository: cloud-ops-hub/loki
-    tag: 3.7.0-amd64
+    tag: 3.7.1-amd64
     pullPolicy: IfNotPresent
   commonConfig:
     path_prefix: /var/loki
@@ -44,11 +44,19 @@ singleBinary:
 
 gateway:
   enabled: true
+  verboseLogging: false
   image:
     registry: crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com
     repository: cloud-ops-hub/nginx-unprivileged
     tag: 1.29-alpine-amd64
     pullPolicy: IfNotPresent
+
+ruler:
+  enabled: false
+
+sidecar:
+  rules:
+    enabled: false
 
 minio:
   enabled: false
