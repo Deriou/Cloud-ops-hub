@@ -362,7 +362,7 @@ loki:
   image:
     registry: crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com
     repository: cloud-ops-hub/loki
-    tag: 3.7.1-amd64
+    tag: 3.7.0-amd64
     pullPolicy: IfNotPresent
   commonConfig:
     path_prefix: /var/loki
@@ -464,7 +464,7 @@ bloomGateway:
 
 注意：
 
-- 当前配置按 `grafana-community/loki` chart `13.1.1` 附近的公开信息准备，Loki app version 使用 `3.7.1`。
+- 当前配置使用 Loki `3.7.0`。该 tag 是 Grafana 官方 Loki Docker 文档示例使用的 3.7 系列镜像，更适合当前学习环境直接拉取。
 - 当前 gateway 使用 `nginxinc/nginx-unprivileged:1.29-alpine` 对应的 ACR `1.29-alpine-amd64` tag。
 - 如果部署前 `helm search repo` 或 `helm show chart` 显示版本已经变化，需要同步调整镜像 tag。
 - 如果 `helm template` 报 `deploymentMode` 只支持 `Monolithic`，说明你使用的 chart 版本已经改名，需要根据 `helm show values grafana-community/loki` 的输出调整，不要硬套旧字段。
@@ -575,14 +575,14 @@ rg "image:" /tmp/loki-rendered.yaml
 第一版常见镜像：
 
 ```text
-docker.io/grafana/loki:3.7.1
+docker.io/grafana/loki:3.7.0
 docker.io/nginxinc/nginx-unprivileged:1.29-alpine
 ```
 
 如果你没有关闭 `lokiCanary`，还会出现：
 
 ```text
-docker.io/grafana/loki-canary:3.7.1
+docker.io/grafana/loki-canary:3.7.0
 ```
 
 ### 7.4 查看 Promtail 默认 values
@@ -659,7 +659,7 @@ docker login $ACR_HOST
 ### 8.2 同步 Loki 主镜像
 
 ```bash
-export LOKI_VERSION=3.7.1
+export LOKI_VERSION=3.7.0
 
 docker pull --platform linux/amd64 grafana/loki:$LOKI_VERSION
 docker tag grafana/loki:$LOKI_VERSION $REGISTRY/loki:$LOKI_VERSION-amd64
@@ -711,7 +711,7 @@ docker push $REGISTRY/promtail:$PROMTAIL_VERSION-amd64
 镜像推送完成后，确认 values 文件中的 tag 与刚推送的 ACR tag 一致：
 
 ```text
-loki: 3.7.1-amd64
+loki: 3.7.0-amd64
 nginx-unprivileged: 1.29-alpine-amd64
 promtail: 3.5.1-amd64
 ```
