@@ -1,0 +1,23 @@
+imagePullSecrets:
+  - name: acr-secret
+
+image:
+  registry: crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com
+  repository: cloud-ops-hub/promtail
+  tag: 3.5.1-amd64
+  pullPolicy: IfNotPresent
+
+config:
+  clients:
+    - url: http://loki-gateway.monitoring.svc.cluster.local/loki/api/v1/push
+  snippets:
+    pipelineStages:
+      - cri: {}
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
