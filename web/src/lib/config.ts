@@ -15,6 +15,10 @@ export const appConfig = {
   gatewayBaseUrl: normalizeBaseUrl(import.meta.env.VITE_GATEWAY_API_BASE_URL, "http://localhost:8080"),
   blogBaseUrl: normalizeBaseUrl(import.meta.env.VITE_BLOG_API_BASE_URL, browserOriginFallback("http://localhost:8081")),
   opsBaseUrl: normalizeBaseUrl(import.meta.env.VITE_OPS_API_BASE_URL, "http://localhost:8082"),
+  grafanaDashboardUrl: normalizeBaseUrl(
+    import.meta.env.VITE_GRAFANA_DASHBOARD_URL,
+    "http://grafana.deriou.com/d/cloud-ops-overview/cloud-ops-overview"
+  ),
   useMockOps: import.meta.env.VITE_OPS_USE_MOCK !== "false",
   opsKey: import.meta.env.VITE_OPS_KEY?.trim() ?? ""
 };
