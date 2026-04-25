@@ -27,6 +27,9 @@ ingress:
 persistence:
   enabled: false
 
+initChownData:
+  enabled: false
+
 admin:
   existingSecret: grafana-admin-secret
   userKey: admin-user

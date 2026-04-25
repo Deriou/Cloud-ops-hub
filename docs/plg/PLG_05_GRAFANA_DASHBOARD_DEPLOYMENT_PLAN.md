@@ -192,6 +192,9 @@ service:
 persistence:
   enabled: false
 
+initChownData:
+  enabled: false
+
 admin:
   existingSecret: grafana-admin-secret
   userKey: admin-user
@@ -245,6 +248,7 @@ testFramework:
 说明：
 
 - `persistence.enabled=false` 适合当前学习阶段，但 Dashboard 和 Datasource 必须入仓。
+- `initChownData.enabled=false` 用于关闭 chart 默认的权限修复 init container，避免额外拉取公网 `busybox` 镜像。
 - `testFramework.enabled=false` 用于避免 Helm chart 渲染额外测试镜像。
 - 管理员账号密码不提交到仓库，使用 `grafana-admin-secret` 注入。
 - Dashboard JSON 独立放在 `infra/helm/grafana/dashboards/cloud-ops-overview.json`，部署时通过 `--set-file` 注入。
@@ -582,8 +586,8 @@ helm search repo grafana/grafana --versions | head
 
 建议：
 
-- 部署命令中使用 `--version <chart-version>` 固定 chart 版本。
-- 文档或 values 中记录 Grafana app version 和 chart version。
+- 部署命令中使用 `--version 8.15.0` 固定 chart 版本。
+- 文档中记录 Grafana 镜像版本 `11.6.3` 和 Helm chart 版本 `8.15.0`。
 
 ## 10. 预渲染检查
 
@@ -594,7 +598,7 @@ helm template grafana grafana/grafana \
   -n monitoring \
   -f infra/helm/grafana/values-dev.yaml \
   --set-file dashboards.default.cloud-ops-overview.json=infra/helm/grafana/dashboards/cloud-ops-overview.json \
-  --version <chart-version> \
+  --version 8.15.0 \
   > /tmp/grafana-rendered.yaml
 ```
 
@@ -633,7 +637,7 @@ helm upgrade --install grafana grafana/grafana \
   -n monitoring \
   -f infra/helm/grafana/values-dev.yaml \
   --set-file dashboards.default.cloud-ops-overview.json=infra/helm/grafana/dashboards/cloud-ops-overview.json \
-  --version <chart-version>
+  --version 8.15.0
 ```
 
 命令用途：
@@ -957,11 +961,24 @@ kubectl -n monitoring describe pod -l app.kubernetes.io/name=grafana
 - 查看 Grafana Pod 事件。
 - 排查镜像不存在、ACR Secret 缺失、镜像拉取权限错误等问题。
 
+如果状态是 `Init:ImagePullBackOff`，继续检查 init container：
+
+```bash
+kubectl -n monitoring get pod -l app.kubernetes.io/name=grafana \
+  -o jsonpath='{range .items[*].spec.initContainers[*]}{.name}{" -> "}{.image}{"\n"}{end}'
+```
+
+命令用途：
+
+- 查看 Grafana Pod 渲染出的 init container 镜像。
+- 判断是否仍有 `busybox`、`curl` 等公网镜像没有关闭。
+
 处理方向：
 
 - 确认镜像已推送到 ACR。
 - 确认 `monitoring` namespace 有 `acr-secret`。
 - 确认 values 中镜像地址和 tag 正确。
+- 如果 init container 是 `init-chown-data`，确认 `infra/helm/grafana/values-dev.yaml` 中已有 `initChownData.enabled=false`，然后重新执行 `helm upgrade`。
 
 ### 18.2 Grafana 打开后跳转地址不对
 
