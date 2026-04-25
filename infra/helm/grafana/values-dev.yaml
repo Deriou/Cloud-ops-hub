@@ -1,0 +1,112 @@
+image:
+  registry: crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com
+  repository: cloud-ops-hub/grafana-oss
+  tag: 11.6.3-amd64
+  pullPolicy: IfNotPresent
+
+imagePullSecrets:
+  - name: acr-secret
+
+replicas: 1
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 3000
+
+ingress:
+  enabled: true
+  ingressClassName: traefik
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+  hosts:
+    - grafana.deriou.com
+  path: /
+  pathType: Prefix
+
+persistence:
+  enabled: false
+
+admin:
+  existingSecret: grafana-admin-secret
+  userKey: admin-user
+  passwordKey: admin-password
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 768Mi
+
+grafana.ini:
+  server:
+    domain: grafana.deriou.com
+    root_url: http://grafana.deriou.com/
+  auth.anonymous:
+    enabled: true
+    org_role: Viewer
+  users:
+    viewers_can_edit: false
+    default_theme: light
+  dashboards:
+    default_home_dashboard_path: /var/lib/grafana/dashboards/default/cloud-ops-overview.json
+  date_formats:
+    default_timezone: Asia/Shanghai
+  analytics:
+    reporting_enabled: false
+    check_for_updates: false
+
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        uid: prometheus
+        type: prometheus
+        access: proxy
+        url: http://prometheus-server.monitoring.svc.cluster.local
+        isDefault: true
+        editable: false
+        jsonData:
+          timeInterval: 30s
+      - name: Loki
+        uid: loki
+        type: loki
+        access: proxy
+        url: http://loki-gateway.monitoring.svc.cluster.local
+        editable: false
+        jsonData:
+          maxLines: 1000
+
+dashboardProviders:
+  dashboardproviders.yaml:
+    apiVersion: 1
+    providers:
+      - name: default
+        orgId: 1
+        folder: Cloud Ops
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/default
+
+dashboards: {}
+
+sidecar:
+  dashboards:
+    enabled: false
+  datasources:
+    enabled: false
+  plugins:
+    enabled: false
+  alerts:
+    enabled: false
+
+testFramework:
+  enabled: false
+
+imageRenderer:
+  enabled: false
