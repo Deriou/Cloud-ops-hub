@@ -30,6 +30,12 @@ persistence:
 initChownData:
   enabled: false
 
+downloadDashboardsImage:
+  registry: crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com
+  repository: cloud-ops-hub/curl
+  tag: 8.9.1-amd64
+  pullPolicy: IfNotPresent
+
 admin:
   existingSecret: grafana-admin-secret
   userKey: admin-user

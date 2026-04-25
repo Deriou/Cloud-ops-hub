@@ -195,6 +195,12 @@ persistence:
 initChownData:
   enabled: false
 
+downloadDashboardsImage:
+  registry: crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com
+  repository: cloud-ops-hub/curl
+  tag: 8.9.1-amd64
+  pullPolicy: IfNotPresent
+
 admin:
   existingSecret: grafana-admin-secret
   userKey: admin-user
@@ -249,6 +255,7 @@ testFramework:
 
 - `persistence.enabled=false` 适合当前学习阶段，但 Dashboard 和 Datasource 必须入仓。
 - `initChownData.enabled=false` 用于关闭 chart 默认的权限修复 init container，避免额外拉取公网 `busybox` 镜像。
+- `downloadDashboardsImage` 改为 ACR 镜像，用于 chart 的 `download-dashboards` init container。
 - `testFramework.enabled=false` 用于避免 Helm chart 渲染额外测试镜像。
 - 管理员账号密码不提交到仓库，使用 `grafana-admin-secret` 注入。
 - Dashboard JSON 独立放在 `infra/helm/grafana/dashboards/cloud-ops-overview.json`，部署时通过 `--set-file` 注入。
@@ -548,6 +555,36 @@ docker push crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com/cloud-o
 
 - 把 Grafana 镜像推送到项目 ACR。
 - 确保 ECS/K3s 不依赖公网 Docker Hub 拉取镜像。
+
+### 8.4 同步 Grafana init container 镜像
+
+```bash
+docker pull --platform linux/amd64 curlimages/curl:8.9.1
+```
+
+命令用途：
+
+- 拉取 `linux/amd64` 架构的 `curl` 镜像。
+- 该镜像用于 Grafana chart 的 `download-dashboards` init container。
+
+```bash
+docker tag curlimages/curl:8.9.1 \
+  crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com/cloud-ops-hub/curl:8.9.1-amd64
+```
+
+命令用途：
+
+- 给 `curl` 镜像打上项目 ACR 地址标签。
+- 让 Grafana init container 后续从 ACR 拉取镜像。
+
+```bash
+docker push crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com/cloud-ops-hub/curl:8.9.1-amd64
+```
+
+命令用途：
+
+- 把 `curl` 镜像推送到项目 ACR。
+- 避免 K3s 节点直接从 Docker Hub 拉取 `curlimages/curl:8.9.1`。
 
 ## 9. Helm Chart 准备
 
