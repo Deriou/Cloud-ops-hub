@@ -8,7 +8,7 @@
 - `service-account.yaml`：创建 Jenkins controller 使用的 `jenkins` ServiceAccount。
 - `rbac.yaml`：授权 Jenkins 在 `cicd` namespace 中创建和管理临时 Agent Pod。
 - `pv-pvc.yaml`：用 `hostPath` 持久化 `/var/jenkins_home`，保留插件、任务配置、凭据和构建历史。
-- `deployment.yaml`：部署 Jenkins controller，使用 ACR 镜像 `jenkins:lts-jdk21-amd64`。
+- `deployment.yaml`：部署 Jenkins controller，使用 ACR 镜像 `jenkins:lts-jdk21-amd64`，并通过 initContainer 修复 hostPath 权限。
 - `service.yaml`：提供集群内访问入口，`8080` 用于 UI，`50000` 用于 inbound agent。
 - `kustomization.yaml`：把上述资源组合成一个可执行的 Kustomize 部署入口。
 
@@ -25,6 +25,20 @@ kubectl -n cicd get pod,svc,pvc
 kubectl -n cicd rollout status deploy/jenkins --timeout=300s
 kubectl -n cicd logs deploy/jenkins --tail=100
 ```
+
+如果 Pod 出现 `missing rw permissions on JENKINS_HOME`：
+
+```bash
+kubectl -n cicd logs deploy/jenkins --previous --tail=100
+kubectl apply -k infra/k8s/cicd/jenkins
+kubectl -n cicd delete pod -l app=jenkins
+```
+
+原因：
+
+- `hostPath` 目录 `/opt/cloud-ops/jenkins-home` 可能由 root 创建。
+- Jenkins 容器内默认用户是 UID `1000`。
+- `fix-jenkins-home-permissions` initContainer 会在主容器启动前把目录权限调整给 UID/GID `1000`。
 
 ## 本地访问 Jenkins UI
 

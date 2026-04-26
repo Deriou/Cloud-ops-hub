@@ -22,6 +22,20 @@ spec:
         - name: acr-secret
       securityContext:
         fsGroup: 1000
+      initContainers:
+        - name: fix-jenkins-home-permissions
+          image: crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com/cloud-ops-hub/jenkins:lts-jdk21-amd64
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -c
+            - chown -R 1000:1000 /var/jenkins_home && chmod -R u+rwX,g+rwX /var/jenkins_home
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+          volumeMounts:
+            - name: jenkins-home
+              mountPath: /var/jenkins_home
       containers:
         - name: jenkins
           image: crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com/cloud-ops-hub/jenkins:lts-jdk21-amd64
@@ -73,4 +87,3 @@ spec:
         - name: jenkins-home
           persistentVolumeClaim:
             claimName: jenkins-home
-
