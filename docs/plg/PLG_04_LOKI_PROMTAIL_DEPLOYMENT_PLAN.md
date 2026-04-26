@@ -1523,16 +1523,18 @@ kubectl delete namespace monitoring
 
 ## 18. 下一阶段衔接
 
-Loki + Promtail 跑通后，下一步建议部署 Grafana。
+当前项目已经完成后续衔接：
 
-Grafana 阶段要做：
+- Grafana 已部署到 `monitoring` namespace。
+- Grafana 已接入 Prometheus 与 Loki 数据源。
+- Dashboard 已覆盖服务健康、请求量、5xx、p95、JVM Heap 与错误日志趋势。
+- 前端 `/ops/cluster` 已提供 Grafana Dashboard 入口、Prometheus Targets 查看说明和 traceId 联查示例。
 
-- 添加 Prometheus 数据源
-- 添加 Loki 数据源
-- 在 Explore 中查询 `{namespace="cloud-ops"}`
-- 做服务健康、请求量、5xx、JVM 内存四类基础面板
-- 增加错误日志趋势面板
-- 做一次人为异常演练，确认同一时间窗能看到指标和日志变化
+后续建议：
+
+- 保持 Grafana Explore 不对访客公开。
+- Loki 当前非持久化，生产化前再补 PVC。
+- 告警阶段先做 `up=0`、5xx 比例升高、JVM Heap 高位。
 
 ## 19. 参考资料
 

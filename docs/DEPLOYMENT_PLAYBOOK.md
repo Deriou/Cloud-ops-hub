@@ -14,8 +14,18 @@
 ```text
 本地改代码 -> git commit/push -> ECS git pull
 -> docker build (新镜像) -> docker push (ACR)
--> 更新 K8s deployment 镜像tag -> kubectl apply
+-> 更新并提交 K8s deployment 镜像 tag -> kubectl apply
 -> kubectl get pods / logs 验证 -> 线上访问验证
+```
+
+> 当前约定：不要在 ECS 上临时手改 `deployment.yaml`。每次镜像 tag 变化，都必须先在仓库更新对应 `infra/k8s/base/**/deployment.yaml` 并提交，ECS 只执行 `git pull` 和部署命令，避免本地 Git 状态混乱。
+
+当前仓库清单应与 ACR 最新可用镜像保持一致：
+
+```text
+web            -> 0.0.6-observability-v1
+gateway-portal -> 0.0.5-plg-v1
+blog-service   -> 0.0.5-plg-v1
 ```
 
 ## 3. 本地提交与推送
@@ -64,11 +74,11 @@ git pull
 ```bash
 # 构建
 docker build --platform linux/amd64 \
-  -t crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com/cloud-ops-hub/web:0.0.3 \
+  -t crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com/cloud-ops-hub/web:0.0.6-observability-v1 \
   web/
 
 # 推送
-docker push crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com/cloud-ops-hub/web:0.0.3
+docker push crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com/cloud-ops-hub/web:0.0.6-observability-v1
 ```
 
 ### 5.2 更新 Deployment 镜像 tag
@@ -78,8 +88,21 @@ docker push crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com/cloud-o
 ```yaml
 containers:
   - name: web
-    image: crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com/cloud-ops-hub/web:0.0.3
+    image: crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com/cloud-ops-hub/web:0.0.6-observability-v1
 ```
+
+更新后在本地提交并推送：
+
+```bash
+git add infra/k8s/base/web/deployment.yaml
+git commit -m "chore(web): bump image tag"
+git push
+```
+
+命令用途：
+
+- 把线上期望运行的镜像版本纳入 Git。
+- 避免 ECS 上手动修改版本号造成工作区混乱。
 
 ### 5.3 应用清单
 
@@ -124,6 +147,20 @@ docker push crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com/cloud-o
 ```
 
 ### 6.3 更新 deployment.yaml 中的镜像 tag 并 apply
+
+后端镜像 tag 也必须和前端一样先入仓：
+
+- `infra/k8s/base/gateway/deployment.yaml`
+- `infra/k8s/base/blog/deployment.yaml`
+
+不要只在 ECS 上临时执行 `kubectl set image` 后忘记回写仓库。
+
+当前版本：
+
+```yaml
+gateway-portal: 0.0.5-plg-v1
+blog-service: 0.0.5-plg-v1
+```
 
 ```bash
 kubectl apply -k infra/k8s/base/
@@ -184,6 +221,7 @@ kubectl -n cloud-ops get secret acr-secret
 
 - [ ] 本地变更已 commit/push
 - [ ] 镜像 tag 递增（避免混淆）
+- [ ] 对应 `deployment.yaml` 已更新并提交
 - [ ] 目标镜像已 push 到 ACR
 
 ### 发布后
@@ -198,5 +236,6 @@ kubectl -n cloud-ops get secret acr-secret
 1. 一次发布只改一个主题（便于回滚）
 2. 镜像 tag 使用递增版本（如 `0.0.3`）
 3. 不使用 `latest` 作为生产部署 tag
-4. 每次发布后记录“变更内容 + 验证结果”
-5. 先手动跑通，再做 Jenkins 自动化
+4. 每次镜像 tag 更新都同步提交 `deployment.yaml`
+5. 每次发布后记录“变更内容 + 验证结果”
+6. 先手动跑通，再做 Jenkins 自动化

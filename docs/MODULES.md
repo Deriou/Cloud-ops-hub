@@ -5,15 +5,18 @@
 - `common/common-core`
 - `apps/gateway-portal`
 - `apps/blog-service`
-- `apps/ops-core`
-- `web/portal-ui`
+- `web`
 - `infra/*`
+
+规划中模块：
+
+- `apps/ops-core`
 
 ## 2. 依赖方向
 
 - 允许：
   - `apps/* -> common/common-core`
-  - `web/portal-ui -> apps/* (HTTP API)`
+  - `web -> apps/* (HTTP API)`
 - 禁止：
   - `apps/gateway-portal <-> apps/blog-service` 直接代码依赖
   - `apps/gateway-portal <-> apps/ops-core` 直接代码依赖
@@ -31,7 +34,7 @@
 
 - Gateway-Portal: 仅维护网关配置与应用注册数据
 - Blog-Service: 仅维护博客域数据
-- Ops-Core: 仅维护运维任务与诊断数据
+- Ops-Core: 规划中，后续仅维护运维任务与诊断数据
 - 严禁跨库 join 与跨域事务
 
 ## 5. 包命名建议
@@ -39,7 +42,7 @@
 - `dev.deriou.common.*`
 - `dev.deriou.gateway.*`
 - `dev.deriou.blog.*`
-- `dev.deriou.ops.*`
+- `dev.deriou.ops.*`（规划中）
 
 ## 6. 模块开发流程
 

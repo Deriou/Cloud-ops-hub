@@ -31,19 +31,36 @@
 - Prometheus:
   - 仅采集核心业务与 JVM 指标
   - 禁止高基数标签
+  - 不直接公网暴露，Targets 通过 SSH 隧道或 `port-forward` 查看
 - Loki:
   - 统一结构化日志
-  - 默认 7 天保留
+  - 当前通过 Promtail 采集 `cloud-ops` namespace 容器日志
+  - 当前非持久化，保留窗口按 Loki 配置控制在 3~7 天，Pod 重建会丢历史日志
 - Grafana:
   - 指标与日志同屏联查
-  - 提供服务健康与发布诊断大盘
+  - `http://grafana.deriou.com` 公网匿名只读
+  - 提供服务健康、请求量、5xx、p95、JVM 与错误日志趋势看板
+  - 不向访客公开 Explore 入口，避免日志明细泄露
+
+当前已跑通链路：
+
+```text
+业务请求 -> Spring Boot 指标/日志 -> Prometheus/Loki -> Grafana Dashboard
+业务响应 traceId -> Loki LogQL 查询 -> 后端访问日志
+```
+
+当前尚未接入：
+
+- 节点 CPU/内存真实指标（需后续补 `node-exporter` 或 kubelet/cAdvisor 抓取）
+- `kube-state-metrics`
+- Grafana 外部通知告警
 
 ## 6. 故障处理最小流程
 
 1. 在 Gateway 确认健康状态聚合结果
 2. 在 Grafana 查看异常时间窗指标波动
-3. 在 Loki 检索对应 `traceId` 与错误日志
-4. 在 Ops-Core 拉取诊断报告与建议
+3. 使用 LogQL 检索对应 `traceId` 与错误日志
+4. 如果是发布问题，再结合 Jenkins/CI 日志定位构建或部署阶段
 5. 记录处理结论并沉淀到 runbook
 
 ## 7. 安全与密钥

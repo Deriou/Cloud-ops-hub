@@ -1,5 +1,7 @@
 # Ops-Core API
 
+> 当前状态：`apps/ops-core` 尚未在仓库中落地。本文档保留为后续 CI/CD、K8s 状态采集与发布诊断能力的接口规划，不代表当前线上已有这些接口。
+
 Base path: `/api/v1/ops`
 
 ## 1. 集群状态

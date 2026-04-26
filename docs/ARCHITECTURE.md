@@ -16,16 +16,14 @@ Cloud-ops-hub/
   apps/
     gateway-portal/
     blog-service/
-    ops-core/
+    ops-core/                 # 规划中，当前仓库尚未落地
   common/
     common-core/
   web/
-    portal-ui/
+    # 当前前端位于仓库根目录 web/
   infra/
-    docker/
     k8s/
-    jenkins/
-    observability/
+    helm/
   docs/
 ```
 
@@ -33,7 +31,6 @@ Cloud-ops-hub/
 
 - Gateway-Portal:
   - 唯一公网入口
-  - 托管前端静态资源
   - 统一鉴权与演示模式控制
   - 聚合子应用元数据与健康状态
 - Blog-Service:
@@ -41,9 +38,14 @@ Cloud-ops-hub/
   - 文章、标签、分类管理与查询
   - 轻量站内搜索
 - Ops-Core:
+  - 当前为规划中模块
   - K8s 状态采集
   - Jenkins 流水线触发
   - 发布诊断报告聚合（Prometheus + Loki）
+- Web:
+  - 承载 `deriou.com` 门户页面
+  - `/ops/cluster` 提供可观测性入口说明
+  - 不直接重做 Grafana、Prometheus、Loki 图表平台
 
 ## 4. 关键技术决策
 
@@ -51,10 +53,13 @@ Cloud-ops-hub/
 - 鉴权采用自定义 `HandlerInterceptor`，不使用 Spring Security/JWT
 - 缓存优先 Caffeine，本地缓存 + TTL
 - 统一异常处理与日志输出，保障运维排障一致性
+- PLG 采用 Helm 部署，配置与 Dashboard 进入仓库
+- Grafana 公网匿名只读，Prometheus 不公网暴露
 
 ## 5. 数据与依赖边界
 
-- 每个应用独立数据库 schema：`db_gateway`, `db_blog`, `db_ops`
+- 当前已落地数据库重点是 `db_blog`
+- Gateway 与后续 Ops-Core 独立数据边界保留规划
 - 严禁跨 schema 查询
 - `apps/*` 仅可依赖 `common/*`，应用之间通过 API 通信
 
@@ -63,3 +68,4 @@ Cloud-ops-hub/
 - JVM: `-Xms256m -Xmx512m -XX:MaxRAMPercentage=75.0`
 - 所有服务必须配置健康检查、资源 requests/limits
 - 仅采集必要监控指标，避免观测系统反客为主
+- 当前节点 CPU/内存真实指标尚未接入，后续需补 `node-exporter` 或 kubelet/cAdvisor

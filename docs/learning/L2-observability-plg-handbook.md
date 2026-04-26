@@ -8,6 +8,13 @@
 - Loki 聚合应用日志
 - Grafana 同屏联查日志与指标
 
+当前项目状态：
+
+- Prometheus 已通过 Helm 部署，抓取 `gateway-portal` 与 `blog-service`。
+- Loki + Promtail 已通过 Helm 部署，Promtail 已采集 `cloud-ops` namespace 日志。
+- Grafana 已通过 Helm 部署到 `monitoring` namespace，公网只读入口为 `http://grafana.deriou.com`。
+- 前端 `/ops/cluster` 只放 Grafana 看板入口、Prometheus Targets 查看说明和 traceId 联查示例。
+
 ## 前置条件
 
 - L1 已完成，服务已在 K3s 跑起来
@@ -21,11 +28,19 @@
 
 - gateway-portal
 - blog-service
-- kubelet / node-exporter（可选）
 
 验收标准：
 
 - Prometheus `Targets` 页面全部 `UP`
+- 通过 SSH 隧道或 `port-forward` 查看 Targets，不直接公网暴露 Prometheus
+
+当前未接入：
+
+- `node-exporter`
+- `kube-state-metrics`
+- kubelet/cAdvisor 指标
+
+因此 `/ops/cluster` 顶部 CPU/内存摘要仍是门户 mock，不代表真实节点资源。
 
 ## Step 2：部署 Loki + 日志采集器
 
@@ -41,7 +56,8 @@
 
 验收标准：
 
-- Grafana Explore 中可按 `namespace=cloud-ops` 查询到日志
+- Grafana 管理员视角或 Loki 查询中可按 `namespace=cloud-ops` 查询到日志
+- 可通过 `{namespace="cloud-ops"} |= "traceId=demo-loki-003"` 查到业务访问日志
 
 ## Step 3：接入 Grafana
 
@@ -59,12 +75,16 @@
 验收标准：
 
 - 同一时间窗可看指标与日志
+- 匿名用户可以查看 Dashboard，但不能编辑
+- 前端不暴露 Grafana Explore
 
 ## Step 4：建立最小告警
 
+当前尚未完成，建议在 CI/CD 跑通后再做。
+
 先做 3 条高价值告警：
 
-- Pod 重启频繁
+- 服务不可用（`up=0`）
 - 5xx 比例超过阈值
 - JVM 堆内存持续高位
 
@@ -90,6 +110,7 @@
 验收标准：
 
 - 能按一次异常发布，检索到对应日志与指标
+- 当前 `ops-core` 尚未落地，发布诊断先作为后续规划
 
 ## 8G 单机优化建议
 
@@ -97,4 +118,4 @@
 - 禁止高基数标签（如 userId）
 - Loki 严格保留策略，避免磁盘膨胀
 - Grafana Dashboard 控制数量与刷新频率
-
+- Grafana、Loki、Prometheus 第一阶段均可非持久化，配置必须入仓

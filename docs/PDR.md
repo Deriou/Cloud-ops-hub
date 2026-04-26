@@ -117,12 +117,16 @@
 - Jenkins-on-K8s，动态 Pod Agent
 - 路径感知构建，仅构建变更模块
 - 空闲内存占用目标 < 200MB
+- 当前下一阶段重点是先打通 web/gateway/blog 的构建、推送 ACR、更新 Deployment 与 rollout 验证闭环
 
 ### 7.3 PLG 监控栈
 
 - Prometheus 仅采集核心业务 + JVM 指标
 - Loki 默认日志保留 7 天
 - Grafana 提供指标与日志同时间轴联查
+- 当前已完成 Prometheus、Loki + Promtail、Grafana Dashboard 展示闭环
+- Grafana 公网匿名只读，Prometheus 不公网暴露
+- 节点 CPU/内存真实指标尚未接入，后续需补节点/集群指标采集
 
 ## 8. 安全与环境兼容性
 
@@ -151,6 +155,11 @@
 - **M2**：完成 Blog 核心链路（渲染缓存 + 搜索）
 - **M3**：完成 Ops-Core 采集、流水线触发、诊断报告
 - **M4**：全链路联调、CI/CD 稳定化、PLG 看板验收
+
+当前阶段说明：
+
+- Blog、Gateway、Web 与 PLG 展示闭环已优先推进。
+- Ops-Core 仍为后续模块，CI/CD 会先以 Jenkins + K8s 发布闭环为目标。
 
 ## 11. 验收标准
 

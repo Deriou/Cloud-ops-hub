@@ -878,13 +878,14 @@ Prometheus Targets：查看业务服务指标抓取状态与抓取间隔。
 
 ```text
 Grafana Dashboard: http://grafana.deriou.com/d/cloud-ops-overview/cloud-ops-overview
-Prometheus Targets: http://<Prometheus 可访问地址>/targets
+Prometheus Targets: 通过 SSH 隧道或 port-forward 访问 http://localhost:9090/targets
 ```
 
 注意：
 
 - 前端不要提供 Grafana Explore 匿名入口。
-- 如果 Prometheus 没有公网暴露，前端可以只写“通过 port-forward 访问”说明。
+- Prometheus 不公网暴露，前端只写“通过 port-forward 访问”说明，不放 `prometheus.deriou.com` 链接。
+- `/ops/cluster` 顶部 CPU、内存、错误率摘要当前仍来自前端 mock；真实业务观测以 Grafana Dashboard 为准。
 
 ## 16. 第一批告警设计
 

@@ -680,21 +680,22 @@ kubectl delete namespace monitoring
 
 ## 15. 下一阶段衔接
 
-Prometheus 跑通后，下一步建议是部署 Grafana。
+当前项目已经完成后续衔接：
 
-Grafana 阶段要做的事情：
+- Loki + Promtail 已部署并采集 `cloud-ops` 日志。
+- Grafana 已部署到 `monitoring` namespace。
+- Grafana 已接入 Prometheus 与 Loki 数据源。
+- `http://grafana.deriou.com` 已作为公网匿名只读 Dashboard 入口。
 
-- 添加 Prometheus 数据源
-- 做一个最小服务健康面板
-- 展示 `up`
-- 展示 HTTP 请求量
-- 展示 5xx 错误趋势
-- 展示 JVM 内存使用
+Prometheus 后续仍保持当前约束：
 
-等 Grafana 面板跑通后，再进入 Loki/Promtail 日志采集阶段。
+- 不直接公网暴露 Prometheus。
+- Targets 通过 SSH 隧道或 `kubectl port-forward` 查看。
+- 当前只抓取 `gateway-portal` 与 `blog-service` 业务指标。
+- 节点 CPU/内存真实指标尚未接入，后续如需展示需补 `node-exporter` 或 kubelet/cAdvisor 抓取。
 
 ## 16. 参考资料
 
-- Prometheus Community Helm Charts：https://github.com/prometheus-community/helm-charts
-- Prometheus Helm Chart：https://artifacthub.io/packages/helm/prometheus-community/prometheus
-- Prometheus 配置文档：https://prometheus.io/docs/prometheus/latest/configuration/configuration/
+- Prometheus Community Helm Charts：[https://github.com/prometheus-community/helm-charts](https://github.com/prometheus-community/helm-charts)
+- Prometheus Helm Chart：[https://artifacthub.io/packages/helm/prometheus-community/prometheus](https://artifacthub.io/packages/helm/prometheus-community/prometheus)
+- Prometheus 配置文档：[https://prometheus.io/docs/prometheus/latest/configuration/configuration/](https://prometheus.io/docs/prometheus/latest/configuration/configuration/)
