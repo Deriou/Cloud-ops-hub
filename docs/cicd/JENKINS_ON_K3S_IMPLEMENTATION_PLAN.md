@@ -2,6 +2,13 @@
 
 本文档基于 `docs/learning/L3-jenkins-on-k3s-handbook.md` 与当前仓库实际结构，规划 Cloud-Ops-Hub 第一版 CI/CD 落地路径。
 
+> 2026-04-27 对齐说明：
+>
+> 当前实操第一阶段优先采用“Jenkins Controller 挂载 ECS 宿主机 Docker 能力”的轻量方案，先跑通 `web` 模块的最小发布闭环。
+> Kubernetes Dynamic Agent、Kaniko / BuildKit rootless 等更云原生方案保留为后续演进。
+> 具体第一阶段部署步骤见：`docs/cicd/JENKINS_WEB_PIPELINE_DOCKER_DEPLOYMENT_GUIDE.md`。
+> 当前已补充 `infra/jenkins/Dockerfile` 与 `infra/k8s/cicd/jenkins` 相关清单，用于提供 Docker CLI、kubectl、Docker socket 挂载和 `cloud-ops` 发布权限。
+
 目标不是一次性做成复杂平台，而是先把现有手工发布流程稳定自动化：
 
 ```text

@@ -22,9 +22,11 @@ spec:
         - name: acr-secret
       securityContext:
         fsGroup: 1000
+        supplementalGroups:
+          - 999
       initContainers:
         - name: fix-jenkins-home-permissions
-          image: crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com/cloud-ops-hub/jenkins:lts-jdk21-amd64
+          image: crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com/cloud-ops-hub/jenkins:lts-jdk21-docker-kubectl-amd64
           imagePullPolicy: IfNotPresent
           command:
             - sh
@@ -38,7 +40,7 @@ spec:
               mountPath: /var/jenkins_home
       containers:
         - name: jenkins
-          image: crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com/cloud-ops-hub/jenkins:lts-jdk21-amd64
+          image: crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com/cloud-ops-hub/jenkins:lts-jdk21-docker-kubectl-amd64
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
@@ -50,6 +52,8 @@ spec:
               value: "-Xms256m -Xmx768m -Djenkins.install.runSetupWizard=true"
             - name: JENKINS_OPTS
               value: "--prefix=/"
+            - name: DOCKER_HOST
+              value: "unix:///var/run/docker.sock"
           resources:
             requests:
               cpu: 200m
@@ -60,6 +64,8 @@ spec:
           volumeMounts:
             - name: jenkins-home
               mountPath: /var/jenkins_home
+            - name: docker-sock
+              mountPath: /var/run/docker.sock
           startupProbe:
             httpGet:
               path: /login
@@ -87,3 +93,7 @@ spec:
         - name: jenkins-home
           persistentVolumeClaim:
             claimName: jenkins-home
+        - name: docker-sock
+          hostPath:
+            path: /var/run/docker.sock
+            type: Socket

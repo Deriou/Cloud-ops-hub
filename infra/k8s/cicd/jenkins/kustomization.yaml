@@ -5,7 +5,7 @@ resources:
   - namespace.yaml
   - service-account.yaml
   - rbac.yaml
+  - cloud-ops-deployer-rbac.yaml
   - pv-pvc.yaml
   - deployment.yaml
   - service.yaml
-
