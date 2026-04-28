@@ -66,6 +66,9 @@ spec:
               mountPath: /var/jenkins_home
             - name: docker-sock
               mountPath: /var/run/docker.sock
+            - name: kubectl-bin
+              mountPath: /usr/local/bin/kubectl
+              readOnly: true
           startupProbe:
             httpGet:
               path: /login
@@ -97,3 +100,7 @@ spec:
           hostPath:
             path: /var/run/docker.sock
             type: Socket
+        - name: kubectl-bin
+          hostPath:
+            path: /usr/local/bin/kubectl
+            type: File

@@ -11,8 +11,12 @@ crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com/cloud-ops-hub/jenki
 扩展能力：
 
 - `docker` CLI：通过宿主机 `/var/run/docker.sock` 构建并推送镜像。
-- `kubectl`：使用 Jenkins Pod 的 ServiceAccount 发布到 K3s。
 - `git` / `openssh-client`：拉取仓库并回写 Deployment tag。
+
+说明：
+
+- `kubectl` 不在镜像构建阶段下载，避免 ECS 构建时访问 `dl.k8s.io` 不稳定。
+- Jenkins Pod 运行时通过 `hostPath` 挂载 ECS 已有的 `/usr/local/bin/kubectl`。
 
 ## 构建镜像
 
@@ -50,12 +54,12 @@ docker run --rm \
 
 - 验证镜像内已包含 Docker CLI。
 
+`kubectl` 需要在 Jenkins Pod 更新后验证：
+
 ```bash
-docker run --rm \
-  crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com/cloud-ops-hub/jenkins:lts-jdk21-docker-kubectl-amd64 \
-  kubectl version --client
+kubectl -n cicd exec deploy/jenkins -- kubectl version --client
 ```
 
 作用：
 
-- 验证镜像内已包含 kubectl。
+- 验证 Jenkins Pod 已成功挂载宿主机 `kubectl`。

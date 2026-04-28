@@ -130,7 +130,7 @@ jenkins/jenkins:lts-jdk21
 crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com/cloud-ops-hub/jenkins:lts-jdk21-docker-kubectl-amd64
 ```
 
-该镜像基于基础 Jenkins ACR 镜像扩展 `docker` CLI、`kubectl`、`git`，用于第一阶段 Web Pipeline。
+该镜像基于基础 Jenkins ACR 镜像扩展 `docker` CLI、`git`，用于第一阶段 Web Pipeline。`kubectl` 通过 hostPath 从 ECS 的 `/usr/local/bin/kubectl` 挂载进入 Jenkins Pod。
 
 ## 6. Kubernetes 资源模板
 

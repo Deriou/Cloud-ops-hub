@@ -244,9 +244,14 @@ crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com/cloud-ops-hub/jenki
 该镜像在原 Jenkins 镜像基础上补充：
 
 - `docker` CLI
-- `kubectl`
 - `git`
 - `openssh-client`
+
+`kubectl` 不在镜像构建阶段下载，原因是 ECS 到 `dl.k8s.io` 可能不稳定。当前采用运行时挂载方式：
+
+```text
+ECS /usr/local/bin/kubectl -> Jenkins Pod /usr/local/bin/kubectl
+```
 
 ### 4.2 构建 Jenkins CI 镜像
 
@@ -311,6 +316,7 @@ volumes:
 
 - Jenkins 容器执行 `docker build` 时，实际使用 ECS 宿主机 Docker daemon。
 - 当前 ECS 的 Docker socket GID 为 `999`，`infra/k8s/cicd/jenkins/deployment.yaml` 已配置 `supplementalGroups: [999]`。
+- 当前 ECS 已存在 `/usr/local/bin/kubectl`，`deployment.yaml` 已通过 `hostPath` 只读挂载到 Jenkins Pod。
 
 注意：
 

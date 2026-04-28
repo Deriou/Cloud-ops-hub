@@ -9,7 +9,7 @@
 - `rbac.yaml`：授权 Jenkins 在 `cicd` namespace 中创建和管理临时 Agent Pod。
 - `cloud-ops-deployer-rbac.yaml`：授权 Jenkins 发布 `cloud-ops` namespace 中的业务资源。
 - `pv-pvc.yaml`：用 `hostPath` 持久化 `/var/jenkins_home`，保留插件、任务配置、凭据和构建历史。
-- `deployment.yaml`：部署 Jenkins controller，使用 ACR 镜像 `jenkins:lts-jdk21-docker-kubectl-amd64`，挂载 Docker socket，并通过 initContainer 修复 hostPath 权限。
+- `deployment.yaml`：部署 Jenkins controller，使用 ACR 镜像 `jenkins:lts-jdk21-docker-kubectl-amd64`，挂载 Docker socket 与宿主机 kubectl，并通过 initContainer 修复 hostPath 权限。
 - `service.yaml`：提供集群内访问入口，`8080` 用于 UI，`50000` 用于 inbound agent。
 - `kustomization.yaml`：把上述资源组合成一个可执行的 Kustomize 部署入口。
 
@@ -72,3 +72,4 @@ crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com/cloud-ops-hub/jenki
 ```
 
 - ECS 节点的 Docker socket 组 GID 当前为 `999`，对应 `deployment.yaml` 中的 `supplementalGroups: [999]`。
+- ECS 节点需要存在 `/usr/local/bin/kubectl`，Jenkins Pod 会以只读方式挂载该二进制文件。
