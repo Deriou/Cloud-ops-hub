@@ -76,6 +76,12 @@ infra/k8s/base/web/deployment.yaml
 | `github-cloud-ops-hub-token` | Username with password | 拉取 GitHub 仓库、提交并推送 Deployment tag。 |
 | `acr-cloud-ops-hub` | Username with password | 登录 ACR，推送 web 镜像。 |
 
+前端日常更新与镜像 tag 规范见：
+
+```text
+docs/cicd/WEB_UPDATE_AI_RUNBOOK.md
+```
+
 ## 3. ECS 发布前检查
 
 以下命令默认在 ECS 项目根目录执行：
@@ -350,6 +356,7 @@ Jenkinsfile.web
 - `BUILD_NUMBER` 对应 Jenkins 构建号。
 - `gitShortSha` 对应源码版本。
 - 每次构建生成唯一 tag，避免复用旧 tag 导致 K8s 不拉新镜像。
+- 普通前端发布不需要修改 `0.0.7-web` 前缀；只有进入新的阶段版本线时才修改 `Jenkinsfile.web`。
 
 ### 6.2 镜像构建命令
 

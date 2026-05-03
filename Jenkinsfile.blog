@@ -1,0 +1,184 @@
+pipeline {
+  agent any
+
+  options {
+    buildDiscarder(logRotator(numToKeepStr: '20'))
+    disableConcurrentBuilds()
+    skipDefaultCheckout(true)
+    timestamps()
+  }
+
+  environment {
+    ACR_REGISTRY = 'crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com'
+    ACR_NAMESPACE = 'cloud-ops-hub'
+    IMAGE_NAME = 'blog-service'
+    IMAGE_VERSION_PREFIX = '0.0.7-blog'
+    K8S_NAMESPACE = 'cloud-ops'
+    K8S_DEPLOYMENT = 'blog-service'
+    DEPLOYMENT_FILE = 'infra/k8s/base/blog/deployment.yaml'
+    DOCKERFILE = 'apps/blog-service/Dockerfile'
+    MAVEN_MODULE = 'apps/blog-service'
+    GIT_PUSH_URL = 'https://github.com/Deriou/Cloud-ops-hub.git'
+  }
+
+  stages {
+    stage('Checkout') {
+      steps {
+        checkout scm
+        sh '''
+          set -eu
+          git status --short
+          git rev-parse --short=7 HEAD
+        '''
+      }
+    }
+
+    stage('Prepare Tag') {
+      steps {
+        script {
+          env.GIT_SHORT_SHA = sh(script: 'git rev-parse --short=7 HEAD', returnStdout: true).trim()
+          env.IMAGE_TAG = "${env.IMAGE_VERSION_PREFIX}-${env.BUILD_NUMBER}-${env.GIT_SHORT_SHA}"
+          env.IMAGE = "${env.ACR_REGISTRY}/${env.ACR_NAMESPACE}/${env.IMAGE_NAME}:${env.IMAGE_TAG}"
+          currentBuild.displayName = "#${env.BUILD_NUMBER} ${env.IMAGE_TAG}"
+        }
+        sh '''
+          set -eu
+          echo "IMAGE_TAG=${IMAGE_TAG}"
+          echo "IMAGE=${IMAGE}"
+        '''
+      }
+    }
+
+    stage('Preflight') {
+      steps {
+        sh '''
+          set -eu
+          test -x ./mvnw
+          test -f "${DOCKERFILE}"
+          test -f "${DEPLOYMENT_FILE}"
+          docker version
+          kubectl version --client
+          kubectl -n "${K8S_NAMESPACE}" auth can-i patch deployments
+        '''
+      }
+    }
+
+    stage('Maven Package') {
+      steps {
+        sh '''
+          set -eu
+          ./mvnw -pl "${MAVEN_MODULE}" -am clean package -DskipTests -B
+        '''
+      }
+    }
+
+    stage('Docker Login') {
+      steps {
+        withCredentials([usernamePassword(
+          credentialsId: 'acr-cloud-ops-hub',
+          usernameVariable: 'ACR_USERNAME',
+          passwordVariable: 'ACR_PASSWORD'
+        )]) {
+          sh '''
+            set +x
+            echo "${ACR_PASSWORD}" | docker login "${ACR_REGISTRY}" -u "${ACR_USERNAME}" --password-stdin
+          '''
+        }
+      }
+    }
+
+    stage('Build Image') {
+      steps {
+        sh '''
+          set -eu
+          docker build --platform linux/amd64 -f "${DOCKERFILE}" -t "${IMAGE}" .
+        '''
+      }
+    }
+
+    stage('Push Image') {
+      steps {
+        sh '''
+          set -eu
+          docker push "${IMAGE}"
+        '''
+      }
+    }
+
+    stage('Update Manifest') {
+      steps {
+        sh '''
+          set -eu
+          sed -i -E "s#(image: )${ACR_REGISTRY}/${ACR_NAMESPACE}/${IMAGE_NAME}:.*#\\1${IMAGE}#" "${DEPLOYMENT_FILE}"
+          grep -n "image:" "${DEPLOYMENT_FILE}"
+        '''
+      }
+    }
+
+    stage('Commit Manifest') {
+      steps {
+        withCredentials([usernamePassword(
+          credentialsId: 'github-cloud-ops-hub-token',
+          usernameVariable: 'GITHUB_USERNAME',
+          passwordVariable: 'GITHUB_TOKEN'
+        )]) {
+          sh '''
+            set -eu
+            git config user.name "cloud-ops-jenkins"
+            git config user.email "jenkins@cloud-ops-hub.local"
+            git add "${DEPLOYMENT_FILE}"
+
+            if git diff --cached --quiet; then
+              echo "No deployment image change to commit."
+            else
+              git commit -m "chore(cicd): bump blog image ${IMAGE_TAG} [skip ci]"
+            fi
+
+            set +x
+            askpass_file="$(pwd)/.git/jenkins-askpass.sh"
+            cat > "${askpass_file}" <<'EOF'
+#!/bin/sh
+case "$1" in
+  *Username*) echo "${GITHUB_USERNAME}" ;;
+  *Password*) echo "${GITHUB_TOKEN}" ;;
+esac
+EOF
+            chmod 700 "${askpass_file}"
+            GIT_ASKPASS="${askpass_file}" GIT_TERMINAL_PROMPT=0 git push "${GIT_PUSH_URL}" HEAD:main
+            rm -f "${askpass_file}"
+          '''
+        }
+      }
+    }
+
+    stage('Deploy Blog') {
+      steps {
+        sh '''
+          set -eu
+          kubectl apply -f "${DEPLOYMENT_FILE}"
+        '''
+      }
+    }
+
+    stage('Verify') {
+      steps {
+        sh '''
+          set -eu
+          kubectl -n "${K8S_NAMESPACE}" rollout status "deploy/${K8S_DEPLOYMENT}" --timeout=300s
+          actual_image="$(kubectl -n "${K8S_NAMESPACE}" get deploy "${K8S_DEPLOYMENT}" -o jsonpath='{.spec.template.spec.containers[0].image}')"
+          echo "Actual image: ${actual_image}"
+          test "${actual_image}" = "${IMAGE}"
+        '''
+      }
+    }
+  }
+
+  post {
+    always {
+      sh '''
+        docker logout "${ACR_REGISTRY}" || true
+        rm -f .git/jenkins-askpass.sh || true
+      '''
+    }
+  }
+}

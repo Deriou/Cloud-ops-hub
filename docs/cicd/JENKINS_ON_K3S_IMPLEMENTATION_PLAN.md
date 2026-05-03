@@ -9,6 +9,7 @@
 > 具体第一阶段部署步骤见：`docs/cicd/JENKINS_WEB_PIPELINE_DOCKER_DEPLOYMENT_GUIDE.md`。
 > 当前已补充 `infra/jenkins/Dockerfile` 与 `infra/k8s/cicd/jenkins` 相关清单，用于提供 Docker CLI、kubectl、Docker socket 挂载和 `cloud-ops` 发布权限。
 > Web 单模块发布的操作 SOP 见：`docs/cicd/WEB_SINGLE_MODULE_RELEASE_SOP.md`。
+> 面向 AI / 协作者的前端更新手册见：`docs/cicd/WEB_UPDATE_AI_RUNBOOK.md`。
 
 目标不是一次性做成复杂平台，而是先把现有手工发布流程稳定自动化：
 
