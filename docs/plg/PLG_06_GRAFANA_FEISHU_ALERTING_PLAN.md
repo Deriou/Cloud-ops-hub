@@ -294,7 +294,7 @@ alerting.contactpoints.yaml
 
 - webhook URL 从 Secret 注入，不硬编码到仓库。
 - 使用 Grafana `webhook` contact point。
-- 使用 `feishu.cloud_ops_payload` 作为字符串形式的 custom payload。
+- 使用 `feishu.cloud_ops_payload` 作为 custom payload 模板。
 - 告警恢复时也发送 resolved 消息。
 
 关键字段：
@@ -303,18 +303,22 @@ alerting.contactpoints.yaml
 settings:
   url: $FEISHU_WEBHOOK_URL
   httpMethod: POST
-  payload: |
-    {{ "{{ template \"feishu.cloud_ops_payload\" . }}" }}
+  payload:
+    template: feishu.cloud_ops_payload
 ```
 
 这里不要写成：
 
 ```yaml
-payload:
-  template: feishu.cloud_ops_payload
+payload: |
+  {{ "{{ template \"feishu.cloud_ops_payload\" . }}" }}
 ```
 
-原因是 Grafana Webhook 的 custom payload 需要的是一段模板字符串。写成对象结构时，Grafana 可能继续发送默认 webhook body，飞书会因为 body 不符合 `msg_type/content` 协议返回 `400 Bad Request`。
+原因是 Grafana 12.2 的 provisioning schema 中，webhook `payload` 字段类型是 `CustomPayload` 对象。写成字符串会导致 Grafana 启动时报：
+
+```text
+json: cannot unmarshal string into Go struct field .payload of type webhook.CustomPayload
+```
 
 ### 5.5 Notification Policy
 
@@ -664,7 +668,8 @@ description: 'Prometheus cannot scrape {{ "{{ $labels.service }}" }} in cloud-op
 
 - 飞书机器人 webhook URL 写错。
 - 飞书机器人开启了关键词校验，但消息体里没有 `Cloud-Ops-Hub`。
-- Grafana 发送的是默认 webhook body，不是飞书要求的 `msg_type/content` JSON body。
+- Grafana payload provisioning schema 写错，导致 Grafana 启动失败或仍发送默认 body。
+- 飞书侧开启了签名校验，但 Grafana 没有按飞书要求生成 `timestamp/sign`。
 
 飞书文本消息要求的 body 类似：
 
@@ -677,7 +682,7 @@ description: 'Prometheus cannot scrape {{ "{{ $labels.service }}" }} in cloud-op
 }
 ```
 
-本仓库通过 `settings.payload` 指向 `feishu.cloud_ops_payload` 模板，让 Grafana 直接发送上述格式。
+本仓库通过 `settings.payload.template` 指向 `feishu.cloud_ops_payload` 模板，让 Grafana 直接发送上述格式。
 
 ### 9.2 飞书收不到消息
 
