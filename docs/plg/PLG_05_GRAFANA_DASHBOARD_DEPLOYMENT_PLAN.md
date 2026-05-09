@@ -93,13 +93,13 @@ Grafana 镜像也必须同步 `linux/amd64` 版本到 ACR。
 推荐新增镜像：
 
 ```text
-grafana/grafana-oss:11.6.3
+grafana/grafana-oss:12.2.0
 ```
 
 同步到 ACR 后建议使用项目统一 tag 风格：
 
 ```text
-crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com/cloud-ops-hub/grafana-oss:11.6.3-amd64
+crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com/cloud-ops-hub/grafana-oss:12.2.0-amd64
 ```
 
 如果镜像架构错误，Pod 通常会报：
@@ -180,7 +180,7 @@ web/.env.example
 image:
   registry: crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com
   repository: cloud-ops-hub/grafana-oss
-  tag: 11.6.3-amd64
+  tag: 12.2.0-amd64
   pullPolicy: IfNotPresent
 
 imagePullSecrets:
@@ -525,7 +525,7 @@ loki-gateway
 在能访问公网 Docker Hub 的机器执行：
 
 ```bash
-docker pull --platform linux/amd64 grafana/grafana-oss:11.6.3
+docker pull --platform linux/amd64 grafana/grafana-oss:12.2.0
 ```
 
 命令用途：
@@ -536,8 +536,8 @@ docker pull --platform linux/amd64 grafana/grafana-oss:11.6.3
 ### 8.2 标记 ACR 镜像
 
 ```bash
-docker tag grafana/grafana-oss:11.6.3 \
-  crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com/cloud-ops-hub/grafana-oss:11.6.3-amd64
+docker tag grafana/grafana-oss:12.2.0 \
+  crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com/cloud-ops-hub/grafana-oss:12.2.0-amd64
 ```
 
 命令用途：
@@ -548,7 +548,7 @@ docker tag grafana/grafana-oss:11.6.3 \
 ### 8.3 推送到 ACR
 
 ```bash
-docker push crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com/cloud-ops-hub/grafana-oss:11.6.3-amd64
+docker push crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com/cloud-ops-hub/grafana-oss:12.2.0-amd64
 ```
 
 命令用途：
@@ -624,7 +624,7 @@ helm search repo grafana/grafana --versions | head
 建议：
 
 - 部署命令中使用 `--version 8.15.0` 固定 chart 版本。
-- 文档中记录 Grafana 镜像版本 `11.6.3` 和 Helm chart 版本 `8.15.0`。
+- 文档中记录 Grafana 镜像版本 `12.2.0` 和 Helm chart 版本 `8.15.0`。
 
 ## 10. 预渲染检查
 

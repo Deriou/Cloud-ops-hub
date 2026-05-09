@@ -1,7 +1,7 @@
 image:
   registry: crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com
   repository: cloud-ops-hub/grafana-oss
-  tag: 11.6.3-amd64
+  tag: 12.2.0-amd64
   pullPolicy: IfNotPresent
 
 imagePullSecrets:
@@ -40,6 +40,8 @@ admin:
   existingSecret: grafana-admin-secret
   userKey: admin-user
   passwordKey: admin-password
+
+envFromSecret: grafana-alerting-secret
 
 resources:
   requests:
@@ -119,3 +121,155 @@ testFramework:
 
 imageRenderer:
   enabled: false
+
+alerting:
+  templates.yaml:
+    apiVersion: 1
+    templates:
+      - orgId: 1
+        name: feishu.cloud_ops
+        template: |
+          {{ define "feishu.cloud_ops_message" -}}
+          Cloud-Ops-Hub {{ if eq .Status "resolved" }}恢复{{ else }}告警{{ end }}
+          状态：{{ .Status }}
+          规则：{{ .CommonLabels.alertname }}
+          服务：{{ .CommonLabels.service }}
+          命名空间：{{ .CommonLabels.namespace }}
+          级别：{{ .CommonLabels.severity }}
+          说明：Prometheus 无法正常抓取业务服务，请检查 Pod、Service、/actuator/prometheus。
+          Grafana：http://grafana.deriou.com
+          {{- end }}
+
+          {{ define "feishu.cloud_ops_payload" -}}
+          {{ coll.Dict "msg_type" "text" "content" (coll.Dict "text" (tmpl.Exec "feishu.cloud_ops_message" .)) | data.ToJSON }}
+          {{- end }}
+
+  contactpoints.yaml:
+    apiVersion: 1
+    contactPoints:
+      - orgId: 1
+        name: feishu-cloud-ops
+        receivers:
+          - uid: feishu-cloud-ops-webhook
+            type: webhook
+            disableResolveMessage: false
+            settings:
+              url: $FEISHU_WEBHOOK_URL
+              httpMethod: POST
+              payload:
+                template: feishu.cloud_ops_payload
+
+  policies.yaml:
+    apiVersion: 1
+    policies:
+      - orgId: 1
+        receiver: feishu-cloud-ops
+        group_by:
+          - grafana_folder
+          - alertname
+          - service
+        group_wait: 10s
+        group_interval: 30s
+        repeat_interval: 5m
+        routes:
+          - receiver: feishu-cloud-ops
+            matchers:
+              - alertname = CloudOpsServiceDown
+
+  rules.yaml:
+    apiVersion: 1
+    groups:
+      - orgId: 1
+        name: service-availability
+        folder: Cloud Ops
+        interval: 30s
+        rules:
+          - uid: cloudops-service-down
+            title: CloudOpsServiceDown
+            condition: C
+            data:
+              - refId: A
+                datasourceUid: prometheus
+                relativeTimeRange:
+                  from: 300
+                  to: 0
+                model:
+                  datasource:
+                    type: prometheus
+                    uid: prometheus
+                  editorMode: code
+                  expr: up{namespace="cloud-ops", service=~"gateway-portal|blog-service"}
+                  instant: true
+                  intervalMs: 1000
+                  legendFormat: "{{service}}"
+                  maxDataPoints: 43200
+                  range: false
+                  refId: A
+              - refId: B
+                datasourceUid: __expr__
+                relativeTimeRange:
+                  from: 0
+                  to: 0
+                model:
+                  conditions:
+                    - evaluator:
+                        params: []
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                          - B
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                  datasource:
+                    type: __expr__
+                    uid: __expr__
+                  expression: A
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+                  reducer: last
+                  refId: B
+                  type: reduce
+              - refId: C
+                datasourceUid: __expr__
+                relativeTimeRange:
+                  from: 0
+                  to: 0
+                model:
+                  conditions:
+                    - evaluator:
+                        params:
+                          - 1
+                        type: lt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                          - C
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                  datasource:
+                    type: __expr__
+                    uid: __expr__
+                  expression: B
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+                  refId: C
+                  type: threshold
+            noDataState: NoData
+            execErrState: Error
+            for: 1m
+            annotations:
+              summary: Cloud-Ops-Hub service is down
+              description: Prometheus cannot scrape {{ $labels.service }} in cloud-ops namespace.
+              runbook_url: http://grafana.deriou.com/d/cloud-ops-overview/cloud-ops-overview
+            labels:
+              severity: critical
+              category: availability
+              namespace: cloud-ops
+            isPaused: false
