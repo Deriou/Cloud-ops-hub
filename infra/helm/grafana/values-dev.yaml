@@ -129,20 +129,20 @@ alerting:
       - orgId: 1
         name: feishu.cloud_ops
         template: |
-          {{ define "feishu.cloud_ops_message" -}}
-          Cloud-Ops-Hub {{ if eq .Status "resolved" }}恢复{{ else }}告警{{ end }}
-          状态：{{ .Status }}
-          规则：{{ .CommonLabels.alertname }}
-          服务：{{ .CommonLabels.service }}
-          命名空间：{{ .CommonLabels.namespace }}
-          级别：{{ .CommonLabels.severity }}
+          {{ "{{ define \"feishu.cloud_ops_message\" -}}" }}
+          Cloud-Ops-Hub {{ "{{ if eq .Status \"resolved\" }}" }}恢复{{ "{{ else }}" }}告警{{ "{{ end }}" }}
+          状态：{{ "{{ .Status }}" }}
+          规则：{{ "{{ .CommonLabels.alertname }}" }}
+          服务：{{ "{{ .CommonLabels.service }}" }}
+          命名空间：{{ "{{ .CommonLabels.namespace }}" }}
+          级别：{{ "{{ .CommonLabels.severity }}" }}
           说明：Prometheus 无法正常抓取业务服务，请检查 Pod、Service、/actuator/prometheus。
           Grafana：http://grafana.deriou.com
-          {{- end }}
+          {{ "{{- end }}" }}
 
-          {{ define "feishu.cloud_ops_payload" -}}
-          {{ coll.Dict "msg_type" "text" "content" (coll.Dict "text" (tmpl.Exec "feishu.cloud_ops_message" .)) | data.ToJSON }}
-          {{- end }}
+          {{ "{{ define \"feishu.cloud_ops_payload\" -}}" }}
+          {{ "{{ coll.Dict \"msg_type\" \"text\" \"content\" (coll.Dict \"text\" (tmpl.Exec \"feishu.cloud_ops_message\" .)) | data.ToJSON }}" }}
+          {{ "{{- end }}" }}
 
   contactpoints.yaml:
     apiVersion: 1
@@ -201,7 +201,7 @@ alerting:
                   expr: up{namespace="cloud-ops", service=~"gateway-portal|blog-service"}
                   instant: true
                   intervalMs: 1000
-                  legendFormat: "{{service}}"
+                  legendFormat: '{{ "{{service}}" }}'
                   maxDataPoints: 43200
                   range: false
                   refId: A
@@ -266,7 +266,7 @@ alerting:
             for: 1m
             annotations:
               summary: Cloud-Ops-Hub service is down
-              description: Prometheus cannot scrape {{ $labels.service }} in cloud-ops namespace.
+              description: 'Prometheus cannot scrape {{ "{{ $labels.service }}" }} in cloud-ops namespace.'
               runbook_url: http://grafana.deriou.com/d/cloud-ops-overview/cloud-ops-overview
             labels:
               severity: critical

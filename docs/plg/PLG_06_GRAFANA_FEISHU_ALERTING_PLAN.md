@@ -631,6 +631,25 @@ kubectl -n cloud-ops rollout status deploy/gateway-portal
 
 ## 9. 常见问题
 
+### 9.0 `helm template` 报 `undefined variable "$labels"`
+
+原因：
+
+- Grafana chart 会对 values 中的 `alerting` 内容执行 Helm `tpl`。
+- Grafana 告警模板也使用 `{{ ... }}`。
+- 如果直接写 `{{ $labels.service }}`，会被 Helm 当成自己的模板变量提前解析。
+
+处理方式：
+
+- 在 `infra/helm/grafana/values-dev.yaml` 中保留转义写法。
+- 例如实际交给 Grafana 的 `{{ $labels.service }}`，在 Helm values 里应写成：
+
+```yaml
+description: 'Prometheus cannot scrape {{ "{{ $labels.service }}" }} in cloud-ops namespace.'
+```
+
+类似地，notification template 中的 `{{ .Status }}`、`{{ define ... }}` 也需要转义，避免 Helm 抢先解析。
+
 ### 9.1 飞书收不到消息
 
 检查顺序：
