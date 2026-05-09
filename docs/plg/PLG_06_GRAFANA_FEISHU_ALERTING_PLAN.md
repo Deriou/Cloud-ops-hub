@@ -304,7 +304,7 @@ settings:
   url: $FEISHU_WEBHOOK_URL
   httpMethod: POST
   payload:
-    template: feishu.cloud_ops_payload
+    template: '{{ "{{ template \"feishu.cloud_ops_payload\" . }}" }}'
 ```
 
 这里不要写成：
@@ -318,6 +318,20 @@ payload: |
 
 ```text
 json: cannot unmarshal string into Go struct field .payload of type webhook.CustomPayload
+```
+
+也不要只写成：
+
+```yaml
+payload:
+  template: feishu.cloud_ops_payload
+```
+
+这种写法只会把模板名作为配置值传给 Grafana，不能保证 Grafana 执行模板生成飞书需要的 JSON body。正确写法是让 `template` 字段显式调用模板：
+
+```yaml
+payload:
+  template: '{{ "{{ template \"feishu.cloud_ops_payload\" . }}" }}'
 ```
 
 ### 5.5 Notification Policy

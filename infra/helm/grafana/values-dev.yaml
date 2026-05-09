@@ -149,7 +149,7 @@ alerting:
               url: $FEISHU_WEBHOOK_URL
               httpMethod: POST
               payload:
-                template: feishu.cloud_ops_payload
+                template: '{{ "{{ template \"feishu.cloud_ops_payload\" . }}" }}'
 
   policies.yaml:
     apiVersion: 1
