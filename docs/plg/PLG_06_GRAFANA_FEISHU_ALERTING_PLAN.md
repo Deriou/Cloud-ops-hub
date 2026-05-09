@@ -266,8 +266,7 @@ alerting.templates.yaml
 
 目标：
 
-- 定义 `feishu.cloud_ops_message`：生成飞书文本内容。
-- 定义 `feishu.cloud_ops_payload`：生成飞书机器人需要的 JSON 请求体。
+- 定义 `feishu.cloud_ops_payload`：直接生成飞书机器人需要的 JSON 请求体。
 - 消息中包含 `Cloud-Ops-Hub`，满足飞书关键词校验。
 
 通知内容大致如下：
@@ -295,7 +294,7 @@ alerting.contactpoints.yaml
 
 - webhook URL 从 Secret 注入，不硬编码到仓库。
 - 使用 Grafana `webhook` contact point。
-- 使用 `feishu.cloud_ops_payload` 作为 custom payload。
+- 使用 `feishu.cloud_ops_payload` 作为字符串形式的 custom payload。
 - 告警恢复时也发送 resolved 消息。
 
 关键字段：
@@ -304,9 +303,18 @@ alerting.contactpoints.yaml
 settings:
   url: $FEISHU_WEBHOOK_URL
   httpMethod: POST
-  payload:
-    template: feishu.cloud_ops_payload
+  payload: |
+    {{ "{{ template \"feishu.cloud_ops_payload\" . }}" }}
 ```
+
+这里不要写成：
+
+```yaml
+payload:
+  template: feishu.cloud_ops_payload
+```
+
+原因是 Grafana Webhook 的 custom payload 需要的是一段模板字符串。写成对象结构时，Grafana 可能继续发送默认 webhook body，飞书会因为 body 不符合 `msg_type/content` 协议返回 `400 Bad Request`。
 
 ### 5.5 Notification Policy
 
@@ -650,7 +658,28 @@ description: 'Prometheus cannot scrape {{ "{{ $labels.service }}" }} in cloud-op
 
 类似地，notification template 中的 `{{ .Status }}`、`{{ define ... }}` 也需要转义，避免 Helm 抢先解析。
 
-### 9.1 飞书收不到消息
+### 9.1 Contact point 测试返回 `400 Bad Request`
+
+常见原因：
+
+- 飞书机器人 webhook URL 写错。
+- 飞书机器人开启了关键词校验，但消息体里没有 `Cloud-Ops-Hub`。
+- Grafana 发送的是默认 webhook body，不是飞书要求的 `msg_type/content` JSON body。
+
+飞书文本消息要求的 body 类似：
+
+```json
+{
+  "msg_type": "text",
+  "content": {
+    "text": "Cloud-Ops-Hub 告警内容"
+  }
+}
+```
+
+本仓库通过 `settings.payload` 指向 `feishu.cloud_ops_payload` 模板，让 Grafana 直接发送上述格式。
+
+### 9.2 飞书收不到消息
 
 检查顺序：
 

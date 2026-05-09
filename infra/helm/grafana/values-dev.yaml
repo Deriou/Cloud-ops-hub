@@ -129,19 +129,11 @@ alerting:
       - orgId: 1
         name: feishu.cloud_ops
         template: |
-          {{ "{{ define \"feishu.cloud_ops_message\" -}}" }}
-          Cloud-Ops-Hub {{ "{{ if eq .Status \"resolved\" }}" }}恢复{{ "{{ else }}" }}告警{{ "{{ end }}" }}
-          状态：{{ "{{ .Status }}" }}
-          规则：{{ "{{ .CommonLabels.alertname }}" }}
-          服务：{{ "{{ .CommonLabels.service }}" }}
-          命名空间：{{ "{{ .CommonLabels.namespace }}" }}
-          级别：{{ "{{ .CommonLabels.severity }}" }}
-          说明：Prometheus 无法正常抓取业务服务，请检查 Pod、Service、/actuator/prometheus。
-          Grafana：http://grafana.deriou.com
-          {{ "{{- end }}" }}
-
           {{ "{{ define \"feishu.cloud_ops_payload\" -}}" }}
-          {{ "{{ coll.Dict \"msg_type\" \"text\" \"content\" (coll.Dict \"text\" (tmpl.Exec \"feishu.cloud_ops_message\" .)) | data.ToJSON }}" }}
+          {{ "{{- $stateText := \"告警\" -}}" }}
+          {{ "{{- if eq .Status \"resolved\" }}{{- $stateText = \"恢复\" -}}{{- end -}}" }}
+          {{ "{{- $text := printf \"Cloud-Ops-Hub %s\\n状态：%s\\n规则：%s\\n服务：%s\\n命名空间：%s\\n级别：%s\\n说明：Prometheus 无法正常抓取业务服务，请检查 Pod、Service、/actuator/prometheus。\\nGrafana：http://grafana.deriou.com\" $stateText .Status .CommonLabels.alertname .CommonLabels.service .CommonLabels.namespace .CommonLabels.severity -}}" }}
+          {{ "{{ coll.Dict \"msg_type\" \"text\" \"content\" (coll.Dict \"text\" $text) | data.ToJSON }}" }}
           {{ "{{- end }}" }}
 
   contactpoints.yaml:
@@ -156,8 +148,8 @@ alerting:
             settings:
               url: $FEISHU_WEBHOOK_URL
               httpMethod: POST
-              payload:
-                template: feishu.cloud_ops_payload
+              payload: |
+                {{ "{{ template \"feishu.cloud_ops_payload\" . }}" }}
 
   policies.yaml:
     apiVersion: 1
