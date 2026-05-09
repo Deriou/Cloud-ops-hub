@@ -93,7 +93,7 @@ Grafana 镜像也必须同步 `linux/amd64` 版本到 ACR。
 推荐新增镜像：
 
 ```text
-grafana/grafana-oss:12.2.0
+grafana/grafana:12.2.0
 ```
 
 同步到 ACR 后建议使用项目统一 tag 风格：
@@ -525,18 +525,18 @@ loki-gateway
 在能访问公网 Docker Hub 的机器执行：
 
 ```bash
-docker pull --platform linux/amd64 grafana/grafana-oss:12.2.0
+docker pull --platform linux/amd64 grafana/grafana:12.2.0
 ```
 
 命令用途：
 
-- 拉取 `linux/amd64` 架构的 Grafana OSS 镜像。
+- 拉取 `linux/amd64` 架构的 Grafana 镜像。
 - 避免在 ECS 上出现 `exec format error`。
 
 ### 8.2 标记 ACR 镜像
 
 ```bash
-docker tag grafana/grafana-oss:12.2.0 \
+docker tag grafana/grafana:12.2.0 \
   crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com/cloud-ops-hub/grafana-oss:12.2.0-amd64
 ```
 

@@ -225,8 +225,8 @@ infra/helm/grafana/values-dev.yaml
 需要提前把镜像推到 ACR：
 
 ```bash
-docker pull --platform linux/amd64 grafana/grafana-oss:12.2.0
-docker tag grafana/grafana-oss:12.2.0 \
+docker pull --platform linux/amd64 grafana/grafana:12.2.0
+docker tag grafana/grafana:12.2.0 \
   crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com/cloud-ops-hub/grafana-oss:12.2.0-amd64
 docker push crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com/cloud-ops-hub/grafana-oss:12.2.0-amd64
 ```
@@ -236,6 +236,12 @@ docker push crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com/cloud-o
 - 拉取 linux/amd64 架构 Grafana 镜像。
 - 打上 ACR 私有仓库 tag。
 - 推送到 ACR，供 K3s 节点部署时拉取。
+
+注意：
+
+- 上游拉取源使用 `grafana/grafana:12.2.0`。
+- 推到 ACR 后仍使用项目内约定的目标 tag：`cloud-ops-hub/grafana-oss:12.2.0-amd64`。
+- 因此 `infra/helm/grafana/values-dev.yaml` 中的镜像配置不需要改仓库名，只要 ACR 中已有这个目标 tag 即可。
 
 ### 5.2 Secret 注入
 
@@ -412,6 +418,21 @@ helm show values grafana/grafana | grep -n "alerting" -A 20
 - 避免凭旧版本字段写错 values。
 
 ## 7. 推荐实施顺序
+
+如果你已经完成了 Grafana 镜像推送到 ACR，ECS 上从本节开始即可，不需要再重复执行第 5.1 节的 `docker pull/tag/push`。
+
+### 7.0 在 ECS 拉取最新仓库配置
+
+```bash
+cd ~/projects/Cloud-ops-hub
+git pull
+```
+
+命令用途：
+
+- 拉取最新的 `infra/helm/grafana/values-dev.yaml`。
+- 拉取最新的 PLG-06 告警部署文档。
+- 确保 ECS 上的 Helm values 已包含 `alerting` provisioning。
 
 ### 7.1 确认 Prometheus 查询结果
 
