@@ -194,7 +194,8 @@ node_memory_MemTotal_bytes{job="node-exporter"}
 ```bash
 helm upgrade --install grafana grafana/grafana \
   -n monitoring \
-  -f infra/helm/grafana/values-dev.yaml
+  -f infra/helm/grafana/values-dev.yaml \
+  --set-file dashboards.default.cloud-ops-overview.json=infra/helm/grafana/dashboards/cloud-ops-overview.json
 ```
 
 确认 Grafana Pod 重建完成：
@@ -279,6 +280,55 @@ node_memory_MemTotal_bytes{job="node-exporter"}
 http://prometheus-server.monitoring.svc.cluster.local
 ```
 
+### 9.4 Grafana 首页提示 Failed to load home dashboard
+
+如果 Grafana 首页出现：
+
+```text
+Failed to load home dashboard
+Dashboards > Not found
+```
+
+优先确认 Dashboard JSON 是否被 Helm 注入并挂载到 Pod：
+
+```bash
+sudo KUBECONFIG=/etc/rancher/k3s/k3s.yaml kubectl -n monitoring exec deploy/grafana -- \
+  ls -l /var/lib/grafana/dashboards/default
+```
+
+预期能看到：
+
+```text
+cloud-ops-overview.json
+```
+
+如果目录为空或文件不存在，通常是部署 Grafana 时漏掉了 `--set-file`。重新执行：
+
+```bash
+helm upgrade --install grafana grafana/grafana \
+  -n monitoring \
+  -f infra/helm/grafana/values-dev.yaml \
+  --set-file dashboards.default.cloud-ops-overview.json=infra/helm/grafana/dashboards/cloud-ops-overview.json
+```
+
+再查看 rollout：
+
+```bash
+sudo KUBECONFIG=/etc/rancher/k3s/k3s.yaml kubectl -n monitoring rollout status deploy/grafana
+```
+
+如果文件存在但仍然无法加载，查看 Grafana 日志：
+
+```bash
+sudo KUBECONFIG=/etc/rancher/k3s/k3s.yaml kubectl -n monitoring logs deploy/grafana --tail=200 | grep -Ei "dashboard|provision|error"
+```
+
+重点关注：
+
+- dashboard JSON 解析失败。
+- datasource `prometheus` 或 `loki` 不存在。
+- provisioning path 权限或文件读取失败。
+
 ## 10. 后端配置结论
 
 本轮不需要修改 Java 后端配置。
@@ -304,4 +354,3 @@ http://prometheus-server.monitoring.svc.cluster.local
 - Prometheus 能查询到 `node_cpu_seconds_total`。
 - Prometheus 能查询到 `node_memory_MemAvailable_bytes`。
 - Grafana `Cloud Ops Overview` 能看到节点 CPU / 内存趋势。
-
