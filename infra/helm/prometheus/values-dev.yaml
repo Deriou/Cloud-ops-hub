@@ -29,11 +29,39 @@ kube-state-metrics:
   enabled: false
 
 prometheus-node-exporter:
-  enabled: false
+  enabled: true
+  imagePullSecrets:
+    - name: acr-secret
+  image:
+    registry: crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com
+    repository: cloud-ops-hub/node-exporter
+    tag: v1.9.1-amd64
+    pullPolicy: IfNotPresent
+  tolerations:
+    - operator: Exists
 
 serverFiles:
   prometheus.yml:
     scrape_configs:
+      - job_name: "node-exporter"
+        scrape_interval: 30s
+        kubernetes_sd_configs:
+          - role: endpoints
+        relabel_configs:
+          - source_labels:
+              - __meta_kubernetes_namespace
+              - __meta_kubernetes_service_name
+              - __meta_kubernetes_endpoint_port_name
+            action: keep
+            regex: monitoring;prometheus-prometheus-node-exporter;metrics
+          - source_labels:
+              - __meta_kubernetes_pod_node_name
+            target_label: node
+          - target_label: namespace
+            replacement: monitoring
+          - target_label: service
+            replacement: node-exporter
+
       - job_name: "cloud-ops-gateway-portal"
         metrics_path: "/actuator/prometheus"
         scrape_interval: 30s
