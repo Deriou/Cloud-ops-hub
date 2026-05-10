@@ -82,7 +82,9 @@ public class AuthInterceptor implements HandlerInterceptor {
     }
 
     boolean isPublicReadRequest(HttpServletRequest request) {
-        return isPublicBlogReadRequest(request) || isPublicImageReadRequest(request);
+        return isPublicBlogReadRequest(request)
+                || isPublicImageReadRequest(request)
+                || isPublicOpsSummaryReadRequest(request);
     }
 
     boolean isPublicBlogReadRequest(HttpServletRequest request) {
@@ -106,6 +108,11 @@ public class AuthInterceptor implements HandlerInterceptor {
         return HttpMethod.GET.matches(request.getMethod())
                 && request.getRequestURI() != null
                 && request.getRequestURI().startsWith("/api/v1/blog/assets/images/");
+    }
+
+    boolean isPublicOpsSummaryReadRequest(HttpServletRequest request) {
+        return HttpMethod.GET.matches(request.getMethod())
+                && "/api/v1/ops/clusters/summary".equals(request.getRequestURI());
     }
 
     private boolean isSingleSegmentResourceRequest(String requestUri, String prefix) {

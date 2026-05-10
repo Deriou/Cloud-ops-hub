@@ -14,8 +14,8 @@ export async function getClusterSummary(): Promise<ClusterSummary> {
     checkedAt: new Date().toISOString(),
     stats: [
       { label: "CPU 利用率", value: "42%", trend: [21, 28, 33, 29, 38, 42], tone: "normal" },
-      { label: "内存占用", value: "5.2GB / 8GB", trend: [48, 51, 58, 57, 61, 65], tone: "warning" },
-      { label: "错误率", value: "0.7%", trend: [0.2, 0.3, 0.4, 0.6, 0.5, 0.7], tone: "normal" }
+      { label: "内存使用率", value: "65%", trend: [48, 51, 58, 57, 61, 65], tone: "warning" },
+      { label: "服务可用", value: "2/2", trend: [100, 100, 100, 100, 100, 100], tone: "normal" }
     ]
   };
 }

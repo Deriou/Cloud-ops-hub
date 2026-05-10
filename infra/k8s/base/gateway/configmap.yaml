@@ -7,4 +7,8 @@ data:
   # Matches apps/gateway-portal/src/main/resources/application.properties
   OPS_GATEWAY_HEALTH_TIMEOUT: "1500ms"
   OPS_GATEWAY_HEALTH_CACHE_TTL: "10s"
-
+  OPS_PROMETHEUS_BASE_URL: "http://prometheus-server.monitoring.svc.cluster.local"
+  OPS_PROMETHEUS_TIMEOUT: "1500ms"
+  OPS_CLUSTER_NAME: "k3s-single-node"
+  OPS_CLUSTER_REGION: "cn-wulanchabu"
+  OPS_CLUSTER_EXPECTED_SERVICE_COUNT: "2"

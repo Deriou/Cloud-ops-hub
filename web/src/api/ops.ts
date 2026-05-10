@@ -8,7 +8,7 @@ function shouldUseMockOps(): boolean {
 }
 
 export function fetchClusterSummary(): Promise<ClusterSummary> {
-  if (shouldUseMockOps()) {
+  if (appConfig.useMockClusterSummary) {
     return getClusterSummary();
   }
 

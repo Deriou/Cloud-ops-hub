@@ -82,7 +82,7 @@ onMounted(() => {
             <p class="eyebrow">Grafana Dashboard</p>
             <h3 class="mt-3 text-lg font-bold text-slate-900">公网匿名只读看板</h3>
             <p class="mt-2 flex-1 text-sm leading-6 text-slate-600">
-              展示服务健康、请求量、5xx、p95 延迟、JVM Heap 与错误日志趋势，作为面试演示主入口。
+              展示服务健康、请求量、5xx、p95 延迟、JVM Heap、节点 CPU / 内存与错误日志趋势，作为面试演示主入口。
             </p>
             <a
               :href="appConfig.grafanaDashboardUrl"

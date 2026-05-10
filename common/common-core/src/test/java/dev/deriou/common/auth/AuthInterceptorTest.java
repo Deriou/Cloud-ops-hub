@@ -121,6 +121,13 @@ class AuthInterceptorTest {
     }
 
     @Test
+    void missing_key_should_allow_public_ops_summary_endpoint_as_guest() throws Exception {
+        mockMvc.perform(get("/api/v1/ops/clusters/summary"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.accessMode").value(AuthInterceptor.GUEST_MODE));
+    }
+
+    @Test
     void missing_key_should_still_block_blog_write_endpoints() throws Exception {
         mockMvc.perform(post("/api/v1/blog/import/notes:batch"))
                 .andExpect(status().isUnauthorized())
@@ -143,7 +150,7 @@ class AuthInterceptorTest {
 
     @SpringBootConfiguration
     @EnableAutoConfiguration
-    @Import({AuthConfig.class, WebMvcConfig.class, TestController.class, BlogPublicController.class})
+    @Import({AuthConfig.class, WebMvcConfig.class, TestController.class, BlogPublicController.class, OpsPublicController.class})
     static class TestApplication {
     }
 
@@ -216,6 +223,16 @@ class AuthInterceptorTest {
         }
 
         private ApiResponse<Map<String, String>> publicReadResponse(HttpServletRequest request) {
+            Object accessMode = request.getAttribute(AuthInterceptor.ACCESS_MODE_ATTRIBUTE);
+            return ApiResponse.success(Map.of("accessMode", String.valueOf(accessMode)));
+        }
+    }
+
+    @RestController
+    static class OpsPublicController {
+
+        @GetMapping("/api/v1/ops/clusters/summary")
+        ApiResponse<Map<String, String>> summary(HttpServletRequest request) {
             Object accessMode = request.getAttribute(AuthInterceptor.ACCESS_MODE_ATTRIBUTE);
             return ApiResponse.success(Map.of("accessMode", String.valueOf(accessMode)));
         }
