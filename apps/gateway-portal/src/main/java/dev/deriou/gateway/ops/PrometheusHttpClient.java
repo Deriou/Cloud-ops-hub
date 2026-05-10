@@ -1,6 +1,7 @@
 package dev.deriou.gateway.ops;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -8,6 +9,7 @@ import java.util.Objects;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.util.UriBuilder;
 
 @Component
 public class PrometheusHttpClient implements PrometheusClient {
@@ -30,10 +32,7 @@ public class PrometheusHttpClient implements PrometheusClient {
     @Override
     public double queryInstant(String promQl) {
         JsonNode response = restClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .path("/api/v1/query")
-                        .queryParam("query", promQl)
-                        .build())
+                .uri(uriBuilder -> instantQueryUri(uriBuilder, promQl))
                 .retrieve()
                 .body(JsonNode.class);
 
@@ -49,13 +48,7 @@ public class PrometheusHttpClient implements PrometheusClient {
     @Override
     public List<Double> queryRange(String promQl, Instant start, Instant end, String step) {
         JsonNode response = restClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .path("/api/v1/query_range")
-                        .queryParam("query", promQl)
-                        .queryParam("start", start.toString())
-                        .queryParam("end", end.toString())
-                        .queryParam("step", step)
-                        .build())
+                .uri(uriBuilder -> rangeQueryUri(uriBuilder, promQl, start, end, step))
                 .retrieve()
                 .body(JsonNode.class);
 
@@ -88,5 +81,22 @@ public class PrometheusHttpClient implements PrometheusClient {
             throw new IllegalStateException("Prometheus value is malformed");
         }
         return Double.parseDouble(valueNode.get(1).asText());
+    }
+
+    static URI instantQueryUri(UriBuilder uriBuilder, String promQl) {
+        return uriBuilder
+                .path("/api/v1/query")
+                .queryParam("query", "{query}")
+                .build(promQl);
+    }
+
+    static URI rangeQueryUri(UriBuilder uriBuilder, String promQl, Instant start, Instant end, String step) {
+        return uriBuilder
+                .path("/api/v1/query_range")
+                .queryParam("query", "{query}")
+                .queryParam("start", "{start}")
+                .queryParam("end", "{end}")
+                .queryParam("step", "{step}")
+                .build(promQl, start.toString(), end.toString(), step);
     }
 }
