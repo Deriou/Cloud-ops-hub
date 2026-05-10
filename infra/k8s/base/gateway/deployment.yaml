@@ -19,7 +19,7 @@ spec:
         - name: acr-secret
       containers:
         - name: gateway-portal
-          image: crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com/cloud-ops-hub/gateway-portal:0.0.7-gateway-2-e1337a5
+          image: crpi-ekwujpeg6f954ar3.cn-wulanchabu.personal.cr.aliyuncs.com/cloud-ops-hub/gateway-portal:0.0.7-gateway-3-2b9f616
           ports:
             - containerPort: 8080
               name: http
