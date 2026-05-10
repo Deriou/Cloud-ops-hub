@@ -22,6 +22,9 @@ export const appConfig = {
   useMockClusterSummary: import.meta.env.VITE_OPS_SUMMARY_USE_MOCK
     ? import.meta.env.VITE_OPS_SUMMARY_USE_MOCK !== "false"
     : import.meta.env.DEV,
+  useMockServiceHealth: import.meta.env.VITE_OPS_SERVICE_HEALTH_USE_MOCK
+    ? import.meta.env.VITE_OPS_SERVICE_HEALTH_USE_MOCK !== "false"
+    : import.meta.env.DEV,
   useMockOps: import.meta.env.VITE_OPS_USE_MOCK !== "false",
   opsKey: import.meta.env.VITE_OPS_KEY?.trim() ?? ""
 };

@@ -84,7 +84,8 @@ public class AuthInterceptor implements HandlerInterceptor {
     boolean isPublicReadRequest(HttpServletRequest request) {
         return isPublicBlogReadRequest(request)
                 || isPublicImageReadRequest(request)
-                || isPublicOpsSummaryReadRequest(request);
+                || isPublicOpsSummaryReadRequest(request)
+                || isPublicOpsServiceHealthReadRequest(request);
     }
 
     boolean isPublicBlogReadRequest(HttpServletRequest request) {
@@ -113,6 +114,11 @@ public class AuthInterceptor implements HandlerInterceptor {
     boolean isPublicOpsSummaryReadRequest(HttpServletRequest request) {
         return HttpMethod.GET.matches(request.getMethod())
                 && "/api/v1/ops/clusters/summary".equals(request.getRequestURI());
+    }
+
+    boolean isPublicOpsServiceHealthReadRequest(HttpServletRequest request) {
+        return HttpMethod.GET.matches(request.getMethod())
+                && "/api/v1/ops/services/health".equals(request.getRequestURI());
     }
 
     private boolean isSingleSegmentResourceRequest(String requestUri, String prefix) {

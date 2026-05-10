@@ -128,6 +128,13 @@ class AuthInterceptorTest {
     }
 
     @Test
+    void missing_key_should_allow_public_ops_service_health_endpoint_as_guest() throws Exception {
+        mockMvc.perform(get("/api/v1/ops/services/health"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.accessMode").value(AuthInterceptor.GUEST_MODE));
+    }
+
+    @Test
     void missing_key_should_still_block_blog_write_endpoints() throws Exception {
         mockMvc.perform(post("/api/v1/blog/import/notes:batch"))
                 .andExpect(status().isUnauthorized())
@@ -233,6 +240,12 @@ class AuthInterceptorTest {
 
         @GetMapping("/api/v1/ops/clusters/summary")
         ApiResponse<Map<String, String>> summary(HttpServletRequest request) {
+            Object accessMode = request.getAttribute(AuthInterceptor.ACCESS_MODE_ATTRIBUTE);
+            return ApiResponse.success(Map.of("accessMode", String.valueOf(accessMode)));
+        }
+
+        @GetMapping("/api/v1/ops/services/health")
+        ApiResponse<Map<String, String>> serviceHealth(HttpServletRequest request) {
             Object accessMode = request.getAttribute(AuthInterceptor.ACCESS_MODE_ATTRIBUTE);
             return ApiResponse.success(Map.of("accessMode", String.valueOf(accessMode)));
         }

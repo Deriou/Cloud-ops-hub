@@ -1,4 +1,4 @@
-import type { ClusterSummary, DiagnosisReport, PipelineRun, WorkloadItem, WorkloadPage } from "@/types/ops";
+import type { ClusterSummary, DiagnosisReport, PipelineRun, ServiceHealth, WorkloadItem, WorkloadPage } from "@/types/ops";
 
 function wait(ms: number): Promise<void> {
   return new Promise((resolve) => {
@@ -18,6 +18,31 @@ export async function getClusterSummary(): Promise<ClusterSummary> {
       { label: "服务可用", value: "2/2", trend: [100, 100, 100, 100, 100, 100], tone: "normal" }
     ]
   };
+}
+
+export async function getServiceHealth(): Promise<ServiceHealth[]> {
+  await wait(150);
+  const checkedAt = new Date().toISOString();
+  return [
+    {
+      name: "gateway-portal",
+      displayName: "Gateway Portal",
+      status: "UP",
+      value: "1/1",
+      source: "prometheus",
+      checkedAt,
+      detail: "Prometheus target is up"
+    },
+    {
+      name: "blog-service",
+      displayName: "Blog Service",
+      status: "UP",
+      value: "1/1",
+      source: "prometheus",
+      checkedAt,
+      detail: "Prometheus target is up"
+    }
+  ];
 }
 
 const workloadItems: WorkloadItem[] = [

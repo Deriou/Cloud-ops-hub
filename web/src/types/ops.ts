@@ -14,6 +14,16 @@ export interface ClusterSummary {
   stats: OpsStat[];
 }
 
+export interface ServiceHealth {
+  name: string;
+  displayName: string;
+  status: "UP" | "DOWN" | "UNKNOWN";
+  value: string;
+  source: "prometheus";
+  checkedAt: string;
+  detail: string;
+}
+
 export interface WorkloadItem {
   namespace: string;
   name: string;
