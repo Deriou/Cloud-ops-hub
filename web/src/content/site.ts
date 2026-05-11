@@ -9,6 +9,7 @@ export interface FeaturedProject {
   description: string;
   summary: string;
   href: string;
+  stack?: string[];
 }
 
 export interface CuratedAppDefinition {
@@ -17,11 +18,6 @@ export interface CuratedAppDefinition {
   summary: string;
   fallbackRoute: string;
   matchKeys: string[];
-}
-
-export interface OpsEntryDefinition {
-  title: string;
-  description: string;
 }
 
 export const siteMeta = {
@@ -42,26 +38,42 @@ export const siteNavigation: SiteNavigationItem[] = [
 
 export const profile = {
   name: "Deriou",
-  tagline: "写代码、记笔记、在云上折腾",
-  intro: "关注云原生、运维自动化与轻量工程实践，持续整理自己的博客、项目与系统入口。",
+  tagline: "A CS student building, breaking, and learning in the cloud",
+  intro: "A personal hub for notes, cloud-native experiments, DevOps projects, and tools I build along the way.",
   avatarUrl: "/photo.jpg",
-  techStack: ["Kubernetes", "Go", "Java", "Vue", "DevOps"]
+  techStack: [
+    "DevOps",
+    "Kubernetes",
+    "Linux",
+    "Docker",
+    "Shell",
+    "Java",
+    "Python",
+    "JavaWeb",
+    "MySQL",
+    "Spring Boot",
+    "Jenkins",
+    "Grafana",
+    "Prometheus",
+    "Vue"
+  ]
 } as const;
 
 export const featuredProjects: FeaturedProject[] = [
   {
     name: "Deriou/Cloud-ops-hub",
-    description: "Main distribution hub",
-    summary: "集中承载 gateway、blog、ops 与 web 的分发与演进。",
-    href: "https://github.com/Deriou/Cloud-ops-hub"
+    description: "Single-node cloud-native platform",
+    summary: "K3s + Jenkins + PLG on one 8GB node.",
+    href: "https://github.com/Deriou/Cloud-ops-hub",
+    stack: ["K3s", "Jenkins", "PLG", "Spring Boot", "Vue"]
   }
 ];
 
 export const curatedApps: CuratedAppDefinition[] = [
   {
     title: "Portal",
-    description: "有哪些应用、状态如何、从哪进",
-    summary: "作为应用目录与聚合入口，后续在这里承接更多业务应用与敏感入口说明。",
+    description: "Application directory",
+    summary: "Aggregated sub-app entry.",
     fallbackRoute: "/apps",
     matchKeys: ["portal", "gateway-portal", "portal-ui"]
   }
@@ -69,19 +81,7 @@ export const curatedApps: CuratedAppDefinition[] = [
 
 export const opsOverview = {
   statusLabel: "Stable",
-  summary: "Online",
-  description: "Gateway 与 Blog 管理能力集中在一处，健康摘要优先，后续再逐步接入鉴权。",
-  entries: [
-    {
-      title: "Gateway",
-      description: "注册表、健康检查与入口分发的统一门面。"
-    },
-    {
-      title: "Blog Admin",
-      description: "博客托管与管理能力保留在运维边界内。"
-    }
-  ] satisfies OpsEntryDefinition[],
-  tags: ["Jenkins", "Grafana", "Auth Later"]
+  summary: "Online"
 } as const;
 
-export const manifesto = "The coding was tough. Nearly killed me.";
+export const manifesto = "I am Deriou. Blade of Mikaela";
