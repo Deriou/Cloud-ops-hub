@@ -71,11 +71,11 @@ export const featuredProjects: FeaturedProject[] = [
 
 export const curatedApps: CuratedAppDefinition[] = [
   {
-    title: "Portal",
-    description: "Application directory",
-    summary: "Aggregated sub-app entry.",
+    title: "应用实验室",
+    description: "前端小工具与交互实验的公开入口。",
+    summary: "Planning lightweight tools for release checks, trace demos, and resource planning.",
     fallbackRoute: "/apps",
-    matchKeys: ["portal", "gateway-portal", "portal-ui"]
+    matchKeys: ["app-lab", "apps", "portal-ui"]
   }
 ];
 

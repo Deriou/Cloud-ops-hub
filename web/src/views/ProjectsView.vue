@@ -10,9 +10,6 @@ import { RouterLink } from "vue-router";
       <div class="mt-3 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h1 class="text-[2rem] font-extrabold tracking-tight text-slate-900">个人作品入口</h1>
-          <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
-            这里先只保留一个最核心的仓库入口，不做 GitHub API 接入，也不把页面扩成项目管理面板。
-          </p>
         </div>
         <RouterLink to="/" class="text-sm font-semibold text-sky-600 transition hover:text-sky-700">返回首页</RouterLink>
       </div>
