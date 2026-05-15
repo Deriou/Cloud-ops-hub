@@ -40,49 +40,150 @@ public class H2SearchRepository implements SearchRepository {
 
         String countSql = """
                 select count(*)
-                from post
-                where status = 'published'
+                from post p
+                where p.status = 'published'
                   and (
-                      lower(title) like ?
-                      or lower(cast(markdown_content as varchar)) like ?
+                      lower(p.title) like ?
+                      or lower(cast(p.markdown_content as varchar)) like ?
+                      or exists (
+                          select 1
+                          from post_tag pt
+                          inner join tag t on t.id = pt.tag_id
+                          where pt.post_id = p.id
+                            and (
+                                lower(t.name) like ?
+                                or lower(t.slug) like ?
+                            )
+                      )
+                      or exists (
+                          select 1
+                          from post_category pc
+                          inner join category c on c.id = pc.category_id
+                          where pc.post_id = p.id
+                            and (
+                                lower(c.name) like ?
+                                or lower(c.slug) like ?
+                            )
+                      )
                   )
                 """;
 
         String searchSql = """
-                select id,
-                       title,
-                       slug,
-                       summary,
-                       update_time,
+                select p.id,
+                       p.title,
+                       p.slug,
+                       p.summary,
+                       p.update_time,
                        (
                            case
-                               when lower(title) = ? then 300
-                               when locate(?, lower(title)) > 0 then 200
+                               when lower(p.title) = ? then 300
+                               when locate(?, lower(p.title)) > 0 then 200
                                else 0
                            end
                            +
                            case
-                               when locate(?, lower(cast(markdown_content as varchar))) > 0 then 100
+                               when locate(?, lower(cast(p.markdown_content as varchar))) > 0 then 100
+                               else 0
+                           end
+                           +
+                           case
+                               when exists (
+                                   select 1
+                                   from post_tag pt
+                                   inner join tag t on t.id = pt.tag_id
+                                   where pt.post_id = p.id
+                                     and lower(t.name) = ?
+                               ) then 180
+                               when exists (
+                                   select 1
+                                   from post_tag pt
+                                   inner join tag t on t.id = pt.tag_id
+                                   where pt.post_id = p.id
+                                     and (
+                                         lower(t.name) like ?
+                                         or lower(t.slug) like ?
+                                     )
+                               ) then 140
+                               else 0
+                           end
+                           +
+                           case
+                               when exists (
+                                   select 1
+                                   from post_category pc
+                                   inner join category c on c.id = pc.category_id
+                                   where pc.post_id = p.id
+                                     and lower(c.name) = ?
+                               ) then 180
+                               when exists (
+                                   select 1
+                                   from post_category pc
+                                   inner join category c on c.id = pc.category_id
+                                   where pc.post_id = p.id
+                                     and (
+                                         lower(c.name) like ?
+                                         or lower(c.slug) like ?
+                                     )
+                               ) then 140
                                else 0
                            end
                        ) as score
-                from post
-                where status = 'published'
+                from post p
+                where p.status = 'published'
                   and (
-                      lower(title) like ?
-                      or lower(cast(markdown_content as varchar)) like ?
+                      lower(p.title) like ?
+                      or lower(cast(p.markdown_content as varchar)) like ?
+                      or exists (
+                          select 1
+                          from post_tag pt
+                          inner join tag t on t.id = pt.tag_id
+                          where pt.post_id = p.id
+                            and (
+                                lower(t.name) like ?
+                                or lower(t.slug) like ?
+                            )
+                      )
+                      or exists (
+                          select 1
+                          from post_category pc
+                          inner join category c on c.id = pc.category_id
+                          where pc.post_id = p.id
+                            and (
+                                lower(c.name) like ?
+                                or lower(c.slug) like ?
+                            )
+                      )
                   )
-                order by score desc, update_time desc, id desc
+                order by score desc, p.update_time desc, p.id desc
                 limit ? offset ?
                 """;
 
-        Long total = jdbcTemplate.queryForObject(countSql, Long.class, likeKeyword, likeKeyword);
+        Long total = jdbcTemplate.queryForObject(
+                countSql,
+                Long.class,
+                likeKeyword,
+                likeKeyword,
+                likeKeyword,
+                likeKeyword,
+                likeKeyword,
+                likeKeyword
+        );
         List<SearchHit> hits = jdbcTemplate.query(
                 searchSql,
                 SEARCH_HIT_ROW_MAPPER,
                 normalizedKeyword.toLowerCase(),
                 normalizedKeyword.toLowerCase(),
                 normalizedKeyword.toLowerCase(),
+                normalizedKeyword.toLowerCase(),
+                likeKeyword,
+                likeKeyword,
+                normalizedKeyword.toLowerCase(),
+                likeKeyword,
+                likeKeyword,
+                likeKeyword,
+                likeKeyword,
+                likeKeyword,
+                likeKeyword,
                 likeKeyword,
                 likeKeyword,
                 limit,

@@ -36,33 +36,127 @@ public class MysqlSearchRepository implements SearchRepository {
 
     @Override
     public SearchResultPage search(String normalizedKeyword, long offset, long limit) {
+        String likeKeyword = "%" + normalizedKeyword.toLowerCase() + "%";
+
         String countSql = """
                 select count(*)
-                from post
-                where status = 'published'
-                  and match(title, markdown_content) against (? in natural language mode)
+                from post p
+                where p.status = 'published'
+                  and (
+                      match(p.title, p.markdown_content) against (? in natural language mode)
+                      or exists (
+                          select 1
+                          from post_tag pt
+                          inner join tag t on t.id = pt.tag_id
+                          where pt.post_id = p.id
+                            and (
+                                lower(t.name) like ?
+                                or lower(t.slug) like ?
+                            )
+                      )
+                      or exists (
+                          select 1
+                          from post_category pc
+                          inner join category c on c.id = pc.category_id
+                          where pc.post_id = p.id
+                            and (
+                                lower(c.name) like ?
+                                or lower(c.slug) like ?
+                            )
+                      )
+                  )
                 """;
 
         String searchSql = """
-                select id,
-                       title,
-                       slug,
-                       summary,
-                       update_time,
-                       match(title, markdown_content) against (? in natural language mode)
+                select p.id,
+                       p.title,
+                       p.slug,
+                       p.summary,
+                       p.update_time,
+                       match(p.title, p.markdown_content) against (? in natural language mode)
                            + case
-                                 when lower(title) = lower(?) then 100
-                                 when lower(title) like concat('%', lower(?), '%') then 50
+                                 when lower(p.title) = lower(?) then 100
+                                 when lower(p.title) like concat('%', lower(?), '%') then 50
+                                 else 0
+                             end
+                           + case
+                                 when exists (
+                                     select 1
+                                     from post_tag pt
+                                     inner join tag t on t.id = pt.tag_id
+                                     where pt.post_id = p.id
+                                       and lower(t.name) = lower(?)
+                                 ) then 80
+                                 when exists (
+                                     select 1
+                                     from post_tag pt
+                                     inner join tag t on t.id = pt.tag_id
+                                     where pt.post_id = p.id
+                                       and (
+                                           lower(t.name) like ?
+                                           or lower(t.slug) like ?
+                                       )
+                                 ) then 60
+                                 else 0
+                             end
+                           + case
+                                 when exists (
+                                     select 1
+                                     from post_category pc
+                                     inner join category c on c.id = pc.category_id
+                                     where pc.post_id = p.id
+                                       and lower(c.name) = lower(?)
+                                 ) then 80
+                                 when exists (
+                                     select 1
+                                     from post_category pc
+                                     inner join category c on c.id = pc.category_id
+                                     where pc.post_id = p.id
+                                       and (
+                                           lower(c.name) like ?
+                                           or lower(c.slug) like ?
+                                       )
+                                 ) then 60
                                  else 0
                              end as score
-                from post
-                where status = 'published'
-                  and match(title, markdown_content) against (? in natural language mode)
-                order by score desc, update_time desc, id desc
+                from post p
+                where p.status = 'published'
+                  and (
+                      match(p.title, p.markdown_content) against (? in natural language mode)
+                      or exists (
+                          select 1
+                          from post_tag pt
+                          inner join tag t on t.id = pt.tag_id
+                          where pt.post_id = p.id
+                            and (
+                                lower(t.name) like ?
+                                or lower(t.slug) like ?
+                            )
+                      )
+                      or exists (
+                          select 1
+                          from post_category pc
+                          inner join category c on c.id = pc.category_id
+                          where pc.post_id = p.id
+                            and (
+                                lower(c.name) like ?
+                                or lower(c.slug) like ?
+                            )
+                      )
+                  )
+                order by score desc, p.update_time desc, p.id desc
                 limit ? offset ?
                 """;
 
-        Long total = jdbcTemplate.queryForObject(countSql, Long.class, normalizedKeyword);
+        Long total = jdbcTemplate.queryForObject(
+                countSql,
+                Long.class,
+                normalizedKeyword,
+                likeKeyword,
+                likeKeyword,
+                likeKeyword,
+                likeKeyword
+        );
         List<SearchHit> hits = jdbcTemplate.query(
                 searchSql,
                 SEARCH_HIT_ROW_MAPPER,
@@ -70,6 +164,16 @@ public class MysqlSearchRepository implements SearchRepository {
                 normalizedKeyword,
                 normalizedKeyword,
                 normalizedKeyword,
+                likeKeyword,
+                likeKeyword,
+                normalizedKeyword,
+                likeKeyword,
+                likeKeyword,
+                normalizedKeyword,
+                likeKeyword,
+                likeKeyword,
+                likeKeyword,
+                likeKeyword,
                 limit,
                 offset
         );
