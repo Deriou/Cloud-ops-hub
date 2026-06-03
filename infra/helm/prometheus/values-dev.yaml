@@ -81,3 +81,13 @@ serverFiles:
             labels:
               namespace: "cloud-ops"
               service: "blog-service"
+
+      - job_name: "ai-resume-api"
+        metrics_path: "/actuator/prometheus"
+        scrape_interval: 30s
+        static_configs:
+          - targets:
+              - "ai-resume-api.ai-resume.svc.cluster.local:8080"
+            labels:
+              namespace: "ai-resume"
+              service: "ai-resume-api"
