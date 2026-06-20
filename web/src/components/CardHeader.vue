@@ -12,10 +12,10 @@ withDefaults(
 );
 
 const toneClass: Record<string, string> = {
-  sky: "from-sky-400 to-sky-600",
-  emerald: "from-emerald-400 to-emerald-600",
-  amber: "from-amber-400 to-amber-500",
-  violet: "from-violet-400 to-violet-600"
+  sky: "bg-sky-500",
+  emerald: "bg-emerald-500",
+  amber: "bg-amber-500",
+  violet: "bg-violet-500"
 };
 </script>
 
@@ -24,7 +24,7 @@ const toneClass: Record<string, string> = {
     <div class="flex min-w-0 items-center gap-3">
       <div
         :class="[
-          'flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-sm',
+          'flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-white',
           toneClass[tone ?? 'sky']
         ]"
       >

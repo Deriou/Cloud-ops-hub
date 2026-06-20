@@ -148,31 +148,25 @@ onMounted(() => {
   </header>
 
   <section class="grid gap-4 lg:grid-cols-12">
-    <article class="cloud-card overflow-hidden lg:col-span-4">
-      <div class="relative h-24 bg-gradient-to-r from-sky-400 to-sky-500">
-        <div class="absolute -right-6 -top-8 h-28 w-28 rounded-full bg-white/20 blur-2xl" />
-        <div class="absolute left-8 bottom-3 h-16 w-16 rounded-full bg-white/10 blur-xl" />
+    <article class="cloud-card p-7 lg:col-span-4">
+      <div class="flex flex-col items-center text-center">
+        <img
+          :src="profile.avatarUrl"
+          :alt="`${profile.name} avatar`"
+          class="h-28 w-28 rounded-full object-cover shadow-lg shadow-sky-500/15"
+        />
+        <h1 class="mt-5 text-[2.1rem] font-extrabold tracking-tight text-slate-900">{{ profile.name }}</h1>
+        <span
+          class="mt-3 inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700"
+        >
+          <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" aria-hidden="true" />
+          Status 200: Still Coding
+        </span>
+        <p class="mt-3 text-base font-medium text-slate-600">{{ profile.tagline }}</p>
+        <p class="mt-4 max-w-xs text-sm leading-6 text-slate-500">{{ profile.intro }}</p>
       </div>
 
-      <div class="px-7 pb-7">
-        <div class="-mt-14 flex flex-col items-center text-center">
-          <img
-            :src="profile.avatarUrl"
-            :alt="`${profile.name} avatar`"
-            class="h-28 w-28 rounded-full object-cover shadow-lg shadow-sky-500/20 ring-4 ring-white"
-          />
-          <h1 class="mt-4 text-[2.1rem] font-extrabold tracking-tight text-slate-900">{{ profile.name }}</h1>
-          <span
-            class="mt-3 inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700"
-          >
-            <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" aria-hidden="true" />
-            CS Student · Available
-          </span>
-          <p class="mt-3 text-base font-medium text-slate-600">{{ profile.tagline }}</p>
-          <p class="mt-4 max-w-xs text-sm leading-6 text-slate-500">{{ profile.intro }}</p>
-        </div>
-
-        <div class="mt-7 border-t border-slate-200/70 pt-6">
+      <div class="mt-7 border-t border-slate-200/70 pt-6">
           <p class="eyebrow">Contact</p>
           <div class="mt-4 flex flex-wrap justify-center gap-3 lg:justify-start">
             <a
@@ -206,7 +200,6 @@ onMounted(() => {
             </span>
           </div>
         </div>
-      </div>
     </article>
 
     <div class="grid gap-4 lg:col-span-8 md:grid-cols-2">
@@ -271,17 +264,8 @@ onMounted(() => {
         <StatePanel v-else title="Latest" message="No posts yet." />
       </article>
 
-      <article class="cloud-card p-6">
-        <CardHeader :icon="Github" eyebrow="Showcase" title="Projects">
-          <template #action>
-            <RouterLink
-              to="/projects"
-              class="inline-flex items-center gap-1 text-sm font-bold text-sky-500 hover:text-sky-600"
-            >
-              View all <ArrowRight :size="15" />
-            </RouterLink>
-          </template>
-        </CardHeader>
+      <article class="cloud-card flex flex-col p-6">
+        <CardHeader :icon="Github" eyebrow="Showcase" title="Projects" />
 
         <div class="space-y-3">
           <a
@@ -311,6 +295,13 @@ onMounted(() => {
             </div>
           </a>
         </div>
+
+        <RouterLink
+          to="/projects"
+          class="mt-5 inline-flex items-center gap-1.5 text-sm font-bold text-sky-500 hover:text-sky-600"
+        >
+          View all <ArrowRight :size="16" />
+        </RouterLink>
       </article>
 
       <article class="cloud-card p-6">
