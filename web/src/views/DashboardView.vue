@@ -71,6 +71,7 @@ function statusDotClass(status: ServiceHealth["status"]): string {
 }
 
 const portalEntry = curatedApps[0];
+const homepageProjects = computed(() => featuredProjects.slice(0, 2));
 
 const opsSummary = computed(() => ({
   statusLabel: portalStore.hydrated ? portalStore.healthSummary.headline : opsOverview.statusLabel,
@@ -256,7 +257,7 @@ onMounted(() => {
 
         <div class="space-y-3">
           <a
-            v-for="project in featuredProjects"
+            v-for="project in homepageProjects"
             :key="project.name"
             :href="project.href"
             target="_blank"

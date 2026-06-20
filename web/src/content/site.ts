@@ -66,6 +66,20 @@ export const featuredProjects: FeaturedProject[] = [
     summary: "K3s + Jenkins + PLG on one 8GB node.",
     href: "https://github.com/Deriou/Cloud-ops-hub",
     stack: ["K3s", "Jenkins", "PLG", "Spring Boot", "Vue"]
+  },
+  {
+    name: "Deriou/ai-resume",
+    description: "LLM-powered resume optimization platform",
+    summary: "Vue 3 + Spring Boot system for resume scoring, job matching, RBAC, Redis, observability, and Jenkins/K3s delivery.",
+    href: "https://github.com/Deriou/ai-resume",
+    stack: ["Vue 3", "Spring Boot", "Redis", "DeepSeek", "K3s"]
+  },
+  {
+    name: "Deriou/yolodrive",
+    description: "Autonomous driving vision perception practice",
+    summary: "YOLO + DeepSORT vehicle tracking, traffic sign recognition, and lane segmentation experiments.",
+    href: "https://github.com/Deriou/yolodrive",
+    stack: ["Python", "YOLO", "DeepSORT", "YOLOv5", "Mask R-CNN"]
   }
 ];
 

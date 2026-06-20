@@ -23,6 +23,15 @@ import { RouterLink } from "vue-router";
             <h2 class="mt-3 text-[1.7rem] font-bold tracking-tight text-slate-900">{{ project.name }}</h2>
             <p class="mt-3 text-sm font-semibold text-sky-600">{{ project.description }}</p>
             <p class="mt-4 text-sm leading-7 text-slate-600">{{ project.summary }}</p>
+            <div v-if="project.stack?.length" class="mt-4 flex flex-wrap gap-2">
+              <span
+                v-for="tech in project.stack"
+                :key="tech"
+                class="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-600"
+              >
+                {{ tech }}
+              </span>
+            </div>
           </div>
 
           <div class="flex flex-col gap-3 lg:min-w-[180px]">
