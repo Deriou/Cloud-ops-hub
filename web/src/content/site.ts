@@ -98,4 +98,4 @@ export const opsOverview = {
   summary: "Online"
 } as const;
 
-export const manifesto = "I am Deriou. Blade of Mikaela";
+export const manifesto = "let the sapphire star light your way";
